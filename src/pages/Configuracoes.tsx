@@ -31,7 +31,7 @@ const Configuracoes = () => {
               <Label className="text-sm text-muted-foreground">Endereco</Label>
               <Input defaultValue="Rua Exemplo, 123 - Sao Paulo, SP" className="bg-background border-border text-foreground" />
             </div>
-            <Button variant="gold" size="sm">Salvar alteracoes</Button>
+            <Button variant="emerald" size="sm">Salvar alteracoes</Button>
           </div>
         </div>
 

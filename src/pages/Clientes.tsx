@@ -35,7 +35,7 @@ const Clientes = () => {
           <h1 className="text-2xl font-bold text-foreground">Clientes</h1>
           <p className="text-sm text-muted-foreground mt-1">{mockClients.length} clientes cadastrados</p>
         </div>
-        <Button variant="gold" size="sm">
+        <Button variant="emerald" size="sm">
           <Plus className="h-4 w-4" />
           Novo cliente
         </Button>

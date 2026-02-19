@@ -249,12 +249,12 @@ const Onboarding = () => {
               <div />
             )}
             {step < steps.length - 1 ? (
-              <Button variant="gold" size="sm" onClick={() => setStep(step + 1)} disabled={!canNext()}>
+              <Button variant="emerald" size="sm" onClick={() => setStep(step + 1)} disabled={!canNext()}>
                 Proximo
                 <ArrowRight className="h-4 w-4" />
               </Button>
             ) : (
-              <Button variant="gold" size="sm" onClick={handleFinish}>
+              <Button variant="emerald" size="sm" onClick={handleFinish}>
                 Acessar painel
                 <ArrowRight className="h-4 w-4" />
               </Button>
