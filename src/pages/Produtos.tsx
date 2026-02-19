@@ -17,7 +17,7 @@ const Produtos = () => {
           <h1 className="text-2xl font-bold text-foreground">Produtos</h1>
           <p className="text-sm text-muted-foreground mt-1">{products.length} produtos cadastrados</p>
         </div>
-        <Button variant="gold" size="sm">
+        <Button variant="emerald" size="sm">
           <Plus className="h-4 w-4" />
           Novo produto
         </Button>

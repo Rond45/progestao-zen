@@ -124,7 +124,7 @@ const Landing = () => {
             <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>
               Entrar
             </Button>
-            <Button variant="gold" size="sm" onClick={() => navigate("/registro")}>
+            <Button variant="emerald" size="sm" onClick={() => navigate("/registro")}>
               Comecar agora
             </Button>
           </div>
@@ -155,7 +155,7 @@ const Landing = () => {
               Tudo em um unico sistema.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button variant="gold" size="lg" onClick={() => navigate("/registro")}>
+              <Button variant="emerald" size="lg" onClick={() => navigate("/registro")}>
                 Criar conta gratuita
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -298,7 +298,7 @@ const Landing = () => {
                   ))}
                 </ul>
                 <Button
-                  variant={plan.popular ? "gold" : "outline"}
+                  variant={plan.popular ? "emerald" : "outline"}
                   className="w-full"
                   onClick={() => navigate("/registro")}
                 >

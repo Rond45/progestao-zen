@@ -15,7 +15,7 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Roboto',
+  				'Inter',
   				'ui-sans-serif',
   				'system-ui',
   				'-apple-system',
@@ -23,27 +23,15 @@ export default {
   				'Segoe UI',
   				'Helvetica Neue',
   				'Arial',
-  				'Noto Sans',
   				'sans-serif'
   			],
-  			serif: [
-  				'Libre Caslon Text',
-  				'ui-serif',
-  				'Georgia',
-  				'Cambria',
-  				'Times New Roman',
-  				'Times',
-  				'serif'
-  			],
   			mono: [
-  				'Roboto Mono',
+  				'JetBrains Mono',
   				'ui-monospace',
   				'SFMono-Regular',
   				'Menlo',
   				'Monaco',
   				'Consolas',
-  				'Liberation Mono',
-  				'Courier New',
   				'monospace'
   			]
   		},
@@ -53,10 +41,11 @@ export default {
   			ring: 'hsl(var(--ring))',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
-  			gold: {
-  				DEFAULT: 'hsl(var(--gold))',
-  				foreground: 'hsl(var(--gold-foreground))',
-  				muted: 'hsl(var(--gold-muted))'
+  			emerald: {
+  				DEFAULT: 'hsl(var(--emerald))',
+  				hover: 'hsl(var(--emerald-hover))',
+  				active: 'hsl(var(--emerald-active))',
+  				foreground: 'hsl(var(--emerald-foreground))'
   			},
   			surface: {
   				DEFAULT: 'hsl(var(--surface))',
