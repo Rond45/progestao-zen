@@ -129,7 +129,7 @@ const HeroSection = () => {
               <Button
                 variant="emerald"
                 size="lg"
-                onClick={() => navigate("/registro")}
+                onClick={() => navigate("/login")}
               >
                 Criar conta gratuita
                 <ArrowRight className="h-4 w-4" />

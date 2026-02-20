@@ -52,7 +52,7 @@ const Landing = () => {
             <Button
               variant="emerald"
               size="sm"
-              onClick={() => navigate("/registro")}
+              onClick={() => navigate("/login")}
             >
               Começar agora
             </Button>
