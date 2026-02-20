@@ -4,16 +4,62 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { Scissors, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [name, setName] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (user) navigate("/dashboard", { replace: true });
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/dashboard");
+    setLoading(true);
+
+    try {
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { name },
+            emailRedirectTo: window.location.origin,
+          },
+        });
+        if (error) throw error;
+        toast({
+          title: "Conta criada",
+          description: "Verifique seu e-mail para confirmar a conta.",
+        });
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        navigate("/dashboard");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Ocorreu um erro. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -30,10 +76,26 @@ const Login = () => {
               ProGestao<span className="text-primary">+</span>
             </span>
           </div>
-          <p className="text-sm text-muted-foreground">Acesse sua conta</p>
+          <p className="text-sm text-muted-foreground">
+            {isSignUp ? "Crie sua conta" : "Acesse sua conta"}
+          </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {isSignUp && (
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-sm text-muted-foreground">Nome</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Seu nome"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="bg-card border-border text-foreground placeholder:text-muted-foreground/50"
+                required
+              />
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm text-muted-foreground">E-mail</Label>
             <Input
@@ -43,6 +105,7 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="bg-card border-border text-foreground placeholder:text-muted-foreground/50"
+              required
             />
           </div>
           <div className="space-y-2">
@@ -55,6 +118,8 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="bg-card border-border text-foreground placeholder:text-muted-foreground/50 pr-10"
+                required
+                minLength={6}
               />
               <button
                 type="button"
@@ -65,15 +130,15 @@ const Login = () => {
               </button>
             </div>
           </div>
-          <Button type="submit" variant="emerald" className="w-full" size="lg">
-            Entrar
+          <Button type="submit" variant="emerald" className="w-full" size="lg" disabled={loading}>
+            {loading ? "Aguarde..." : isSignUp ? "Criar conta" : "Entrar"}
           </Button>
         </form>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          Ainda nao tem conta?{" "}
-          <button onClick={() => navigate("/registro")} className="text-primary hover:underline font-medium">
-            Criar conta
+          {isSignUp ? "Ja tem conta?" : "Ainda nao tem conta?"}{" "}
+          <button onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline font-medium">
+            {isSignUp ? "Entrar" : "Criar conta"}
           </button>
         </p>
       </div>
