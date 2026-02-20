@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { Scissors, Sparkles, Check } from "lucide-react";
+import verticalBarber from "@/assets/vertical-barbershop.jpg";
+import verticalSalon from "@/assets/vertical-salon.jpg";
 
 const verticals = [
   {
@@ -7,6 +9,7 @@ const verticals = [
     title: "Barbearia",
     description:
       "Corte, barba, sobrancelha e mais. Termos e métricas pensados para o universo masculino.",
+    image: verticalBarber,
     items: [
       "Serviços pré-configurados",
       "Dashboard especializado",
@@ -18,6 +21,7 @@ const verticals = [
     title: "Salão de Beleza",
     description:
       "Corte feminino, escova, progressiva e mais. Interface pensada para salões completos.",
+    image: verticalSalon,
     items: [
       "Serviços pré-configurados",
       "Dashboard especializado",
@@ -31,8 +35,7 @@ const VerticalsSection = () => {
     <section
       className="py-24 border-t border-border"
       style={{
-        background:
-          "linear-gradient(180deg, rgba(16,185,129,0.04), transparent)",
+        background: "linear-gradient(180deg, rgba(16,185,129,0.04), transparent)",
       }}
     >
       <div className="container mx-auto px-4">
@@ -49,26 +52,42 @@ const VerticalsSection = () => {
           {verticals.map((v, i) => (
             <motion.div
               key={v.title}
-              className="rounded-xl border border-border bg-card p-8 text-center hover:border-primary transition-all duration-250 hover:scale-[1.02]"
+              className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary transition-all duration-250 hover:scale-[1.02]"
               initial={{ opacity: 0, x: i === 0 ? -20 : 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <v.icon className="h-8 w-8 text-primary mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-foreground mb-2">
-                {v.title}
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {v.description}
-              </p>
-              <ul className="text-sm text-muted-foreground space-y-2">
-                {v.items.map((item) => (
-                  <li key={item} className="flex items-center justify-center gap-2">
-                    <Check className="h-3.5 w-3.5 text-primary" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
+              <div className="relative h-40 overflow-hidden">
+                <img
+                  src={v.image}
+                  alt={v.title}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{ background: "rgba(10,15,20,0.6)" }}
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <v.icon className="h-10 w-10 text-primary" />
+                </div>
+              </div>
+              <div className="p-8 text-center">
+                <h3 className="text-xl font-bold text-foreground mb-2">
+                  {v.title}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {v.description}
+                </p>
+                <ul className="text-sm text-muted-foreground space-y-2">
+                  {v.items.map((item) => (
+                    <li key={item} className="flex items-center justify-center gap-2">
+                      <Check className="h-3.5 w-3.5 text-primary" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </motion.div>
           ))}
         </div>
