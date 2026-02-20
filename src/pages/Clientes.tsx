@@ -1,31 +1,104 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Phone, Tag, MoreHorizontal } from "lucide-react";
-
-const mockClients = [
-  { id: 1, name: "Carlos Silva", phone: "(11) 99123-4567", tags: ["VIP"], visits: 24, lastVisit: "17/02/2026", spent: "R$ 1.920" },
-  { id: 2, name: "Pedro Santos", phone: "(11) 98765-4321", tags: [], visits: 12, lastVisit: "15/02/2026", spent: "R$ 840" },
-  { id: 3, name: "Andre Lima", phone: "(11) 97654-3210", tags: ["Novo"], visits: 2, lastVisit: "10/02/2026", spent: "R$ 120" },
-  { id: 4, name: "Lucas Oliveira", phone: "(11) 96543-2109", tags: [], visits: 8, lastVisit: "12/02/2026", spent: "R$ 560" },
-  { id: 5, name: "Marcos Costa", phone: "(11) 95432-1098", tags: ["VIP"], visits: 30, lastVisit: "18/02/2026", spent: "R$ 2.340" },
-  { id: 6, name: "Felipe Souza", phone: "(11) 94321-0987", tags: [], visits: 5, lastVisit: "08/02/2026", spent: "R$ 350" },
-  { id: 7, name: "Bruno Dias", phone: "(11) 93210-9876", tags: ["Faltou"], visits: 3, lastVisit: "01/02/2026", spent: "R$ 180" },
-  { id: 8, name: "Thiago Rocha", phone: "(11) 92109-8765", tags: [], visits: 15, lastVisit: "16/02/2026", spent: "R$ 1.050" },
-];
-
-const tagColors: Record<string, string> = {
-  "VIP": "bg-primary/15 text-primary",
-  "Novo": "bg-emerald-500/15 text-emerald-400",
-  "Faltou": "bg-red-500/15 text-red-400",
-};
+import { Label } from "@/components/ui/label";
+import { Search, Plus, Phone, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { useBusiness } from "@/hooks/useBusiness";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Clientes = () => {
+  const { businessId } = useBusiness();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<any>(null);
+  const [form, setForm] = useState({ name: "", phone: "", notes: "" });
 
-  const filtered = mockClients.filter((c) =>
+  const { data: clients = [], isLoading } = useQuery({
+    queryKey: ["clients", businessId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*")
+        .eq("business_id", businessId!)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!businessId,
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: async (values: typeof form) => {
+      if (editingClient) {
+        const { error } = await supabase
+          .from("clients")
+          .update({ name: values.name, phone: values.phone, notes: values.notes })
+          .eq("id", editingClient.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("clients")
+          .insert({ business_id: businessId!, name: values.name, phone: values.phone, notes: values.notes });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clients", businessId] });
+      setDialogOpen(false);
+      resetForm();
+      toast({ title: editingClient ? "Cliente atualizado" : "Cliente criado" });
+    },
+    onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("clients").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["clients", businessId] });
+      toast({ title: "Cliente removido" });
+    },
+    onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+  });
+
+  const resetForm = () => {
+    setForm({ name: "", phone: "", notes: "" });
+    setEditingClient(null);
+  };
+
+  const openEdit = (client: any) => {
+    setEditingClient(client);
+    setForm({ name: client.name, phone: client.phone || "", notes: client.notes || "" });
+    setDialogOpen(true);
+  };
+
+  const openNew = () => {
+    resetForm();
+    setDialogOpen(true);
+  };
+
+  const filtered = clients.filter((c: any) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.phone.includes(search)
+    (c.phone || "").includes(search)
   );
 
   return (
@@ -33,15 +106,60 @@ const Clientes = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Clientes</h1>
-          <p className="text-sm text-muted-foreground mt-1">{mockClients.length} clientes cadastrados</p>
+          <p className="text-sm text-muted-foreground mt-1">{clients.length} clientes cadastrados</p>
         </div>
-        <Button variant="emerald" size="sm">
-          <Plus className="h-4 w-4" />
-          Novo cliente
-        </Button>
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
+          <DialogTrigger asChild>
+            <Button variant="emerald" size="sm" onClick={openNew}>
+              <Plus className="h-4 w-4" />
+              Novo cliente
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-card border-border">
+            <DialogHeader>
+              <DialogTitle className="text-foreground">
+                {editingClient ? "Editar cliente" : "Novo cliente"}
+              </DialogTitle>
+            </DialogHeader>
+            <form
+              onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(form); }}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Nome</Label>
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="bg-background border-border text-foreground"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Telefone</Label>
+                <Input
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className="bg-background border-border text-foreground"
+                  placeholder="(11) 99999-9999"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Observacoes</Label>
+                <Input
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  className="bg-background border-border text-foreground"
+                />
+              </div>
+              <Button type="submit" variant="emerald" className="w-full" disabled={saveMutation.isPending}>
+                {saveMutation.isPending ? "Salvando..." : "Salvar"}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Search */}
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -52,62 +170,75 @@ const Clientes = () => {
         />
       </div>
 
-      {/* Table */}
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Cliente</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3 hidden sm:table-cell">Telefone</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3 hidden md:table-cell">Tags</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3 hidden lg:table-cell">Visitas</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3 hidden lg:table-cell">Ultima visita</th>
-                <th className="text-right text-xs font-medium text-muted-foreground px-5 py-3">Total gasto</th>
-                <th className="px-3 py-3 w-8" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.map((client) => (
-                <tr key={client.id} className="hover:bg-surface-hover transition-colors">
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                        <span className="text-xs font-semibold text-muted-foreground">{client.name.split(" ").map(n => n[0]).join("")}</span>
-                      </div>
-                      <span className="text-sm font-medium text-foreground">{client.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3.5 hidden sm:table-cell">
-                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <Phone className="h-3 w-3" />
-                      {client.phone}
-                    </div>
-                  </td>
-                  <td className="px-5 py-3.5 hidden md:table-cell">
-                    <div className="flex gap-1.5">
-                      {client.tags.map((tag) => (
-                        <span key={tag} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${tagColors[tag] || "bg-secondary text-muted-foreground"}`}>
-                          <Tag className="h-2.5 w-2.5" />
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-5 py-3.5 text-sm text-muted-foreground hidden lg:table-cell">{client.visits}</td>
-                  <td className="px-5 py-3.5 text-sm text-muted-foreground hidden lg:table-cell">{client.lastVisit}</td>
-                  <td className="px-5 py-3.5 text-sm font-medium text-foreground text-right">{client.spent}</td>
-                  <td className="px-3 py-3.5">
-                    <button className="text-muted-foreground hover:text-foreground">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
-      </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground text-sm">
+          {search ? "Nenhum cliente encontrado." : "Nenhum cliente cadastrado ainda."}
+        </div>
+      ) : (
+        <div className="rounded-lg border border-border bg-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Cliente</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3 hidden sm:table-cell">Telefone</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3 hidden md:table-cell">Observacoes</th>
+                  <th className="px-3 py-3 w-8" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filtered.map((client: any) => (
+                  <tr key={client.id} className="hover:bg-secondary/30 transition-colors">
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                          <span className="text-xs font-semibold text-muted-foreground">
+                            {client.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                          </span>
+                        </div>
+                        <span className="text-sm font-medium text-foreground">{client.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 hidden sm:table-cell">
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <Phone className="h-3 w-3" />
+                        {client.phone || "-"}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 text-sm text-muted-foreground hidden md:table-cell truncate max-w-xs">
+                      {client.notes || "-"}
+                    </td>
+                    <td className="px-3 py-3.5">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="text-muted-foreground hover:text-foreground">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-card border-border">
+                          <DropdownMenuItem onClick={() => openEdit(client)} className="text-foreground">
+                            <Pencil className="h-3.5 w-3.5 mr-2" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => deleteMutation.mutate(client.id)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-3.5 w-3.5 mr-2" /> Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
