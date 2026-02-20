@@ -1,8 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, MoreHorizontal, Pencil, Trash2, UserCheck, UserX } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, UserCheck, UserX, Eye } from "lucide-react";
 import { useBusiness } from "@/hooks/useBusiness";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,23 +14,25 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 
 const Profissionais = () => {
   const { businessId } = useBusiness();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [form, setForm] = useState({ name: "", specialty: "" });
+  const [form, setForm] = useState({
+    name: "", specialty: "", compensation_type: "percentage", commission_percentage: "", salary_cents: "",
+  });
 
   const { data: professionals = [], isLoading } = useQuery({
     queryKey: ["professionals", businessId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("professionals")
-        .select("*")
-        .eq("business_id", businessId!)
-        .order("name");
+      const { data, error } = await supabase.from("professionals").select("*").eq("business_id", businessId!).order("name");
       if (error) throw error;
       return data;
     },
@@ -38,11 +41,18 @@ const Profissionais = () => {
 
   const saveMutation = useMutation({
     mutationFn: async (values: typeof form) => {
+      const payload: any = {
+        name: values.name,
+        specialty: values.specialty,
+        compensation_type: values.compensation_type,
+        commission_percentage: values.compensation_type === "percentage" ? parseFloat(values.commission_percentage) || 0 : null,
+        salary_cents: values.compensation_type === "salary" ? Math.round(parseFloat(values.salary_cents) * 100) || 0 : null,
+      };
       if (editing) {
-        const { error } = await supabase.from("professionals").update({ name: values.name, specialty: values.specialty }).eq("id", editing.id);
+        const { error } = await supabase.from("professionals").update(payload).eq("id", editing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("professionals").insert({ business_id: businessId!, name: values.name, specialty: values.specialty });
+        const { error } = await supabase.from("professionals").insert({ ...payload, business_id: businessId! });
         if (error) throw error;
       }
     },
@@ -75,12 +85,28 @@ const Profissionais = () => {
     onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
-  const resetForm = () => { setForm({ name: "", specialty: "" }); setEditing(null); };
+  const resetForm = () => {
+    setForm({ name: "", specialty: "", compensation_type: "percentage", commission_percentage: "", salary_cents: "" });
+    setEditing(null);
+  };
 
   const openEdit = (p: any) => {
     setEditing(p);
-    setForm({ name: p.name, specialty: p.specialty || "" });
+    setForm({
+      name: p.name,
+      specialty: p.specialty || "",
+      compensation_type: p.compensation_type || "percentage",
+      commission_percentage: p.commission_percentage != null ? String(p.commission_percentage) : "",
+      salary_cents: p.salary_cents != null ? (p.salary_cents / 100).toFixed(2) : "",
+    });
     setDialogOpen(true);
+  };
+
+  const formatCompensation = (p: any) => {
+    if (p.compensation_type === "salary" && p.salary_cents != null) {
+      return `Salario R$ ${(p.salary_cents / 100).toFixed(2).replace(".", ",")}`;
+    }
+    return `Comissao ${p.commission_percentage || 0}%`;
   };
 
   return (
@@ -109,6 +135,27 @@ const Profissionais = () => {
                 <Label className="text-muted-foreground">Especialidade</Label>
                 <Input value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} className="bg-background border-border text-foreground" />
               </div>
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Forma de ganho</Label>
+                <Select value={form.compensation_type} onValueChange={(v) => setForm({ ...form, compensation_type: v })}>
+                  <SelectTrigger className="bg-background border-border text-foreground"><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-card border-border">
+                    <SelectItem value="percentage">Porcentagem</SelectItem>
+                    <SelectItem value="salary">Salario</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {form.compensation_type === "percentage" ? (
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Percentual de comissao (%)</Label>
+                  <Input type="number" min="0" max="100" step="1" value={form.commission_percentage} onChange={(e) => setForm({ ...form, commission_percentage: e.target.value })} className="bg-background border-border text-foreground" required />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground">Salario mensal (R$)</Label>
+                  <Input type="number" min="0" step="0.01" value={form.salary_cents} onChange={(e) => setForm({ ...form, salary_cents: e.target.value })} className="bg-background border-border text-foreground" required />
+                </div>
+              )}
               <Button type="submit" variant="emerald" className="w-full" disabled={saveMutation.isPending}>
                 {saveMutation.isPending ? "Salvando..." : "Salvar"}
               </Button>
@@ -142,6 +189,7 @@ const Profissionais = () => {
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="bg-card border-border">
+                    <DropdownMenuItem onClick={() => navigate(`/dashboard/profissionais/${p.id}`)} className="text-foreground"><Eye className="h-3.5 w-3.5 mr-2" /> Detalhes</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => openEdit(p)} className="text-foreground"><Pencil className="h-3.5 w-3.5 mr-2" /> Editar</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => toggleActive.mutate({ id: p.id, active: !p.active })} className="text-foreground">
                       {p.active ? <><UserX className="h-3.5 w-3.5 mr-2" /> Desativar</> : <><UserCheck className="h-3.5 w-3.5 mr-2" /> Ativar</>}
@@ -150,9 +198,12 @@ const Profissionais = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${p.active ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"}`}>
-                {p.active ? "Ativo" : "Inativo"}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${p.active ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"}`}>
+                  {p.active ? "Ativo" : "Inativo"}
+                </span>
+                <span className="text-[10px] text-muted-foreground">{formatCompensation(p)}</span>
+              </div>
             </div>
           ))}
         </div>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Calendar, Users, Scissors, MessageSquare,
-  DollarSign, Settings, Menu, X, LogOut, UserRound,
+  DollarSign, Settings, Menu, X, LogOut, UserRound, Package, ShoppingCart,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useBusiness } from "@/hooks/useBusiness";
@@ -13,6 +13,8 @@ const navItems = [
   { to: "/dashboard/clientes", icon: Users, label: "Clientes" },
   { to: "/dashboard/profissionais", icon: UserRound, label: "Profissionais" },
   { to: "/dashboard/servicos", icon: Scissors, label: "Servicos" },
+  { to: "/dashboard/produtos", icon: Package, label: "Produtos" },
+  { to: "/dashboard/vendas", icon: ShoppingCart, label: "Vendas e Consumo" },
   { to: "/dashboard/financeiro", icon: DollarSign, label: "Financeiro" },
   { to: "/dashboard/whatsapp", icon: MessageSquare, label: "WhatsApp IA" },
   { to: "/dashboard/configuracoes", icon: Settings, label: "Configuracoes" },
