@@ -89,11 +89,12 @@ const HeroSection = () => {
                 boxShadow: "0 20px 40px rgba(0,0,0,0.5)"
               }}>
 
-              
-
-
-
-
+              <img
+                src={heroImage}
+                alt="Ambiente profissional de beleza"
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
 
               {/* Dark overlay */}
               <div
