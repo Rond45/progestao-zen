@@ -119,7 +119,7 @@ const PricingSection = () => {
               <Button
                 variant={plan.popular ? "emerald" : "outline"}
                 className="w-full"
-                onClick={() => navigate("/registro")}
+                onClick={() => navigate("/login")}
               >
                 Começar agora
               </Button>
