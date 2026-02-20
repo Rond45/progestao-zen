@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      antifuro_policies: {
+        Row: {
+          business_id: string
+          confirmation_hours: number | null
+          deposit_percentage: number | null
+          deposit_value_cents: number | null
+          policy_type: string
+          reminder_hours: number | null
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          confirmation_hours?: number | null
+          deposit_percentage?: number | null
+          deposit_value_cents?: number | null
+          policy_type?: string
+          reminder_hours?: number | null
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          confirmation_hours?: number | null
+          deposit_percentage?: number | null
+          deposit_value_cents?: number | null
+          policy_type?: string
+          reminder_hours?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "antifuro_policies_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           business_id: string
@@ -195,6 +233,35 @@ export type Database = {
           },
         ]
       }
+      finance_access: {
+        Row: {
+          business_id: string
+          name: string
+          password_hash: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          name: string
+          password_hash: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          name?: string
+          password_hash?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_access_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           body: string
@@ -249,14 +316,89 @@ export type Database = {
           },
         ]
       }
-      professionals: {
+      product_movements: {
+        Row: {
+          appointment_id: string | null
+          business_id: string
+          buyer_name: string | null
+          client_id: string | null
+          created_at: string
+          id: string
+          occurred_at: string
+          product_id: string
+          qty: number
+          total_cents: number | null
+          type: string
+          unit_price_cents: number | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          business_id: string
+          buyer_name?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          occurred_at?: string
+          product_id: string
+          qty: number
+          total_cents?: number | null
+          type: string
+          unit_price_cents?: number | null
+        }
+        Update: {
+          appointment_id?: string | null
+          business_id?: string
+          buyer_name?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          occurred_at?: string
+          product_id?: string
+          qty?: number
+          total_cents?: number | null
+          type?: string
+          unit_price_cents?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_movements_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_movements_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_movements_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
         Row: {
           active: boolean
           business_id: string
           created_at: string
           id: string
           name: string
-          specialty: string | null
+          price_cents: number
+          stock_qty: number
         }
         Insert: {
           active?: boolean
@@ -264,7 +406,8 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
-          specialty?: string | null
+          price_cents?: number
+          stock_qty?: number
         }
         Update: {
           active?: boolean
@@ -272,6 +415,51 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          price_cents?: number
+          stock_qty?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professionals: {
+        Row: {
+          active: boolean
+          business_id: string
+          commission_percentage: number | null
+          compensation_type: string
+          created_at: string
+          id: string
+          name: string
+          salary_cents: number | null
+          specialty: string | null
+        }
+        Insert: {
+          active?: boolean
+          business_id: string
+          commission_percentage?: number | null
+          compensation_type?: string
+          created_at?: string
+          id?: string
+          name: string
+          salary_cents?: number | null
+          specialty?: string | null
+        }
+        Update: {
+          active?: boolean
+          business_id?: string
+          commission_percentage?: number | null
+          compensation_type?: string
+          created_at?: string
+          id?: string
+          name?: string
+          salary_cents?: number | null
           specialty?: string | null
         }
         Relationships: [
@@ -315,6 +503,78 @@ export type Database = {
             columns: ["business_id"]
             isOneToOne: false
             referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_executions: {
+        Row: {
+          appointment_id: string | null
+          business_id: string
+          client_id: string
+          created_at: string
+          id: string
+          performed_at: string
+          professional_id: string
+          service_id: string
+          service_price_cents: number
+        }
+        Insert: {
+          appointment_id?: string | null
+          business_id: string
+          client_id: string
+          created_at?: string
+          id?: string
+          performed_at?: string
+          professional_id: string
+          service_id: string
+          service_price_cents?: number
+        }
+        Update: {
+          appointment_id?: string | null
+          business_id?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          performed_at?: string
+          professional_id?: string
+          service_id?: string
+          service_price_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_executions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_executions_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_executions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_executions_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_executions_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
             referencedColumns: ["id"]
           },
         ]

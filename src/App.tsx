@@ -7,12 +7,17 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import BoasVindasBarbearia from "./pages/BoasVindasBarbearia";
+import BoasVindasSalao from "./pages/BoasVindasSalao";
 import DashboardLayout from "./components/DashboardLayout";
 import DashboardHome from "./pages/DashboardHome";
 import Agenda from "./pages/Agenda";
 import Clientes from "./pages/Clientes";
 import Profissionais from "./pages/Profissionais";
+import ProfissionalDetalhe from "./pages/ProfissionalDetalhe";
 import Servicos from "./pages/Servicos";
+import Produtos from "./pages/Produtos";
+import VendasConsumo from "./pages/VendasConsumo";
 import Financeiro from "./pages/Financeiro";
 import WhatsAppIA from "./pages/WhatsAppIA";
 import Configuracoes from "./pages/Configuracoes";
@@ -31,6 +36,8 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Navigate to="/login" replace />} />
+            <Route path="/barbearia/boas-vindas" element={<BoasVindasBarbearia />} />
+            <Route path="/salao/boas-vindas" element={<BoasVindasSalao />} />
             <Route
               path="/dashboard"
               element={
@@ -43,7 +50,10 @@ const App = () => (
               <Route path="agenda" element={<Agenda />} />
               <Route path="clientes" element={<Clientes />} />
               <Route path="profissionais" element={<Profissionais />} />
+              <Route path="profissionais/:id" element={<ProfissionalDetalhe />} />
               <Route path="servicos" element={<Servicos />} />
+              <Route path="produtos" element={<Produtos />} />
+              <Route path="vendas" element={<VendasConsumo />} />
               <Route path="financeiro" element={<Financeiro />} />
               <Route path="whatsapp" element={<WhatsAppIA />} />
               <Route path="configuracoes" element={<Configuracoes />} />
