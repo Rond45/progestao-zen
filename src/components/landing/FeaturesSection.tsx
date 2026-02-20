@@ -73,7 +73,9 @@ const FeaturesSection = () => {
           {features.map((feature, i) => (
             <motion.div
               key={feature.title}
-              className="group rounded-xl border border-border bg-card p-6 hover:bg-surface-hover hover:border-primary/30 transition-all duration-250"
+              className="group rounded-xl border border-border p-6 transition-all duration-250 hover:border-primary/30 hover:-translate-y-1"
+              style={{ background: "#11151B" }}
+              whileHover={{ boxShadow: "0 15px 30px rgba(0,0,0,0.4)" }}
               custom={i}
               initial="hidden"
               whileInView="visible"
