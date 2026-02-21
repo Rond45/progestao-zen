@@ -47,7 +47,9 @@ const Login = () => {
           email,
           password,
           options: {
-            data: { name },
+            // Salvamos a vertical (barbearia/salão) no cadastro do usuário.
+            // O banco (Supabase) usa isso para criar a empresa já no ambiente correto.
+            data: { name, vertical: vertical ?? undefined },
             emailRedirectTo: window.location.origin,
           },
         });
