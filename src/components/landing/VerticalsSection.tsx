@@ -33,10 +33,12 @@ const verticals = [
 const VerticalsSection = () => {
   return (
     <section
-      className="py-24 border-t border-border"
+      className="py-24 border-t border-border relative overflow-hidden"
       style={{
-        background: "linear-gradient(180deg, rgba(16,185,129,0.04), transparent)"
+        background: "linear-gradient(160deg, #0A0F14 0%, #0d0a12 40%, #0A0F14 100%)"
       }}>
+      {/* Subtle purple ambient for salon context */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 50% at 70% 50%, rgba(88,28,135,0.06), transparent 60%)" }} />
 
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
