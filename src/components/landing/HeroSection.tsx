@@ -46,7 +46,7 @@ const HeroSection = () => {
           transition={{ duration: 0.6 }}>
 
           <h1 className="text-3xl md:text-5xl font-bold text-foreground leading-tight tracking-tight mb-4">
-            Gestao profissional para seu{" "}
+            Gestão profissional para seu{" "}
             <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(90deg, #10B981, #34D399)" }}>
               negocio
             </span>
