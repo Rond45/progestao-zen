@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Scissors, Sparkles } from "lucide-react";
 import heroBarbershop from "@/assets/hero-barbershop.jpg";
 import heroSalon from "@/assets/hero-salon.jpg";
+import { storeVertical, type Vertical } from "@/hooks/useVerticalTheme";
 
 const verticals = [
 {
@@ -65,7 +66,10 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: i * 0.15 }}
-            onClick={() => navigate(v.route)}>
+            onClick={() => {
+              storeVertical(v.key as Vertical);
+              navigate(v.route);
+            }}>
 
               <div className="relative h-48 overflow-hidden">
                 <img src={v.image} alt={v.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
@@ -79,7 +83,15 @@ const HeroSection = () => {
               <div className="p-6 bg-card">
                 <h3 className="text-xl font-bold text-foreground mb-1">{v.title}</h3>
                 <p className="text-sm text-muted-foreground mb-4">{v.subtitle}</p>
-                <Button variant="emerald" className="w-full" onClick={(e) => {e.stopPropagation();navigate(v.route);}}>
+                <Button
+                  variant="emerald"
+                  className="w-full"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    storeVertical(v.key as Vertical);
+                    navigate(v.route);
+                  }}
+                >
                   {v.btnLabel}
                   <ArrowRight className="h-4 w-4" />
                 </Button>

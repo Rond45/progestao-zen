@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Scissors, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { storeVertical, useVerticalTheme, type Vertical } from "@/hooks/useVerticalTheme";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,7 +12,15 @@ import { useEffect } from "react";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+
+  // Se vier na URL ?vertical=salao ou ?vertical=barbearia, salvamos isso e aplicamos as cores.
+  const verticalParam = searchParams.get("vertical");
+  const vertical = (verticalParam === "salao" || verticalParam === "barbearia")
+    ? (verticalParam as Vertical)
+    : null;
+  useVerticalTheme(vertical);
   const { user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -19,6 +28,10 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState("");
+
+  useEffect(() => {
+    if (vertical) storeVertical(vertical);
+  }, [vertical]);
 
   useEffect(() => {
     if (user) navigate("/dashboard", { replace: true });

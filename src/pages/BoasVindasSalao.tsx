@@ -3,9 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Sparkles, ArrowRight, Star, Shield, Calendar } from "lucide-react";
 import heroSalon from "@/assets/hero-salon.jpg";
+import { storeVertical, useVerticalTheme } from "@/hooks/useVerticalTheme";
 
 const BoasVindasSalao = () => {
   const navigate = useNavigate();
+
+  // Garante que este ambiente sempre aplique e salve o tema do Salão.
+  useVerticalTheme("salao");
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: "#08060E" }}>
@@ -75,7 +79,10 @@ const BoasVindasSalao = () => {
             <Button
               variant="outline"
               size="lg"
-              onClick={() => navigate("/login")}
+              onClick={() => {
+                storeVertical("salao");
+                navigate("/login?vertical=salao");
+              }}
               style={{ borderColor: "rgba(139,92,246,0.3)", color: "rgba(200,180,240,0.85)", background: "rgba(139,92,246,0.06)" }}
             >
               Já tenho conta

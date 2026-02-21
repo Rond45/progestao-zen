@@ -3,9 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Scissors, ArrowRight, Star, Shield, Calendar } from "lucide-react";
 import heroBarbershop from "@/assets/hero-barbershop.jpg";
+import { storeVertical, useVerticalTheme } from "@/hooks/useVerticalTheme";
 
 const BoasVindasBarbearia = () => {
   const navigate = useNavigate();
+
+  // Garante que este ambiente sempre aplique e salve o tema da Barbearia.
+  useVerticalTheme("barbearia");
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -54,11 +58,25 @@ const BoasVindasBarbearia = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button variant="emerald" size="lg" onClick={() => navigate("/login?vertical=barbearia")}>
+            <Button
+              variant="emerald"
+              size="lg"
+              onClick={() => {
+                storeVertical("barbearia");
+                navigate("/login?vertical=barbearia");
+              }}
+            >
               Criar conta
               <ArrowRight className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="lg" onClick={() => navigate("/login")}>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => {
+                storeVertical("barbearia");
+                navigate("/login?vertical=barbearia");
+              }}
+            >
               Ja tenho conta
             </Button>
           </div>
