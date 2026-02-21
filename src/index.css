@@ -70,6 +70,58 @@
     --tracking-normal: 0em;
     --spacing: 0.25rem;
   }
+
+  /* Salon (Amethyst) theme overrides */
+  .salon-theme {
+    --background: 270 30% 4%;
+    --foreground: 270 20% 96%;
+
+    --card: 270 25% 9%;
+    --card-foreground: 270 20% 96%;
+
+    --popover: 270 22% 11%;
+    --popover-foreground: 270 20% 96%;
+
+    --primary: 263 70% 50%;
+    --primary-foreground: 270 30% 98%;
+
+    --secondary: 270 18% 15%;
+    --secondary-foreground: 270 20% 96%;
+
+    --muted: 270 15% 22%;
+    --muted-foreground: 270 16% 62%;
+
+    --accent: 263 70% 50%;
+    --accent-foreground: 270 30% 98%;
+
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 85% 97%;
+
+    --border: 270 18% 15%;
+    --input: 270 22% 10%;
+    --ring: 263 70% 50%;
+
+    --sidebar-background: 270 30% 4%;
+    --sidebar-foreground: 270 20% 96%;
+    --sidebar-primary: 263 70% 50%;
+    --sidebar-primary-foreground: 270 30% 98%;
+    --sidebar-accent: 270 18% 15%;
+    --sidebar-accent-foreground: 270 20% 96%;
+    --sidebar-border: 270 18% 15%;
+    --sidebar-ring: 263 70% 50%;
+
+    --emerald: 263 70% 50%;
+    --emerald-hover: 263 64% 60%;
+    --emerald-active: 263 84% 40%;
+    --emerald-foreground: 270 30% 98%;
+    --surface: 270 25% 9%;
+    --surface-hover: 270 22% 12%;
+    --chart-1: 263 70% 50%;
+    --chart-2: 263 64% 60%;
+    --chart-3: 263 84% 40%;
+    --chart-4: 270 18% 15%;
+    --chart-5: 270 16% 62%;
+  }
 }
 
 @layer base {
@@ -81,6 +133,11 @@
     @apply bg-background text-foreground font-sans antialiased;
     background: linear-gradient(165deg, hsl(210 30% 5%) 0%, hsl(170 25% 8%) 100%);
     min-height: 100vh;
+  }
+
+  .salon-theme,
+  .salon-theme body {
+    background: linear-gradient(165deg, hsl(270 30% 4%) 0%, hsl(263 25% 7%) 100%);
   }
 
   /* Custom scrollbar */
@@ -103,6 +160,12 @@
   }
   input:focus, textarea:focus, select:focus {
     box-shadow: 0 0 0 2px hsla(160, 72%, 40%, 0.15);
+  }
+
+  .salon-theme input:focus,
+  .salon-theme textarea:focus,
+  .salon-theme select:focus {
+    box-shadow: 0 0 0 2px hsla(263, 70%, 50%, 0.15);
   }
 }
 

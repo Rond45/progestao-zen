@@ -31,8 +31,10 @@ const DashboardLayout = () => {
     navigate("/");
   };
 
+  const isSalon = business?.vertical === "salao";
+
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className={`min-h-screen bg-background flex ${isSalon ? "salon-theme" : ""}`}>
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-background/60 backdrop-blur-sm z-40 lg:hidden"
