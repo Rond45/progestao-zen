@@ -12,12 +12,12 @@ const navItems = [
   { to: "/dashboard/agenda", icon: Calendar, label: "Agenda" },
   { to: "/dashboard/clientes", icon: Users, label: "Clientes" },
   { to: "/dashboard/profissionais", icon: UserRound, label: "Profissionais" },
-  { to: "/dashboard/servicos", icon: Scissors, label: "Servicos" },
+  { to: "/dashboard/servicos", icon: Scissors, label: "Serviços" },
   { to: "/dashboard/produtos", icon: Package, label: "Produtos" },
   { to: "/dashboard/vendas", icon: ShoppingCart, label: "Vendas e Consumo" },
   { to: "/dashboard/financeiro", icon: DollarSign, label: "Financeiro" },
   { to: "/dashboard/whatsapp", icon: MessageSquare, label: "WhatsApp IA" },
-  { to: "/dashboard/configuracoes", icon: Settings, label: "Configuracoes" },
+  { to: "/dashboard/configuracoes", icon: Settings, label: "Configurações" },
 ];
 
 const DashboardLayout = () => {

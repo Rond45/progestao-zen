@@ -105,7 +105,7 @@ const Configuracoes = () => {
 
   const saveFinAccess = useMutation({
     mutationFn: async () => {
-      if (finForm.password && finForm.password !== finForm.confirm) throw new Error("Senhas nao conferem");
+      if (finForm.password && finForm.password !== finForm.confirm) throw new Error("Senhas não conferem");
       const payload: any = { name: finForm.name };
       if (finForm.password) payload.password_hash = finForm.password; // In prod use bcrypt
       payload.updated_at = new Date().toISOString();
@@ -141,8 +141,8 @@ const Configuracoes = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Configuracoes</h1>
-        <p className="text-sm text-muted-foreground mt-1">Ajustes gerais do seu negocio</p>
+        <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
+        <p className="text-sm text-muted-foreground mt-1">Ajustes gerais do seu negócio</p>
       </div>
 
       <div className="space-y-4 max-w-2xl">
@@ -150,7 +150,7 @@ const Configuracoes = () => {
         <div className="rounded-lg border border-border bg-card p-5">
           <div className="flex items-center gap-2 mb-4">
             <Store className="h-4 w-4 text-primary" />
-            <h3 className="text-base font-semibold text-foreground">Dados do negocio</h3>
+            <h3 className="text-base font-semibold text-foreground">Dados do negócio</h3>
           </div>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -162,7 +162,7 @@ const Configuracoes = () => {
               <Input value={bizForm.phone} onChange={(e) => setBizForm({ ...bizForm, phone: e.target.value })} className="bg-background border-border text-foreground" />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Endereco</Label>
+              <Label className="text-sm text-muted-foreground">Endereço</Label>
               <Input value={bizForm.address} onChange={(e) => setBizForm({ ...bizForm, address: e.target.value })} className="bg-background border-border text-foreground" />
             </div>
           </div>
@@ -172,7 +172,7 @@ const Configuracoes = () => {
         <div className="rounded-lg border border-border bg-card p-5">
           <div className="flex items-center gap-2 mb-4">
             <Clock className="h-4 w-4 text-primary" />
-            <h3 className="text-base font-semibold text-foreground">Horario de funcionamento</h3>
+            <h3 className="text-base font-semibold text-foreground">Horário de funcionamento</h3>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -185,7 +185,7 @@ const Configuracoes = () => {
             </div>
           </div>
           <Button variant="emerald" size="sm" className="mt-4" onClick={() => saveBiz.mutate()} disabled={saveBiz.isPending}>
-            {saveBiz.isPending ? "Salvando..." : "Salvar alteracoes"}
+            {saveBiz.isPending ? "Salvando..." : "Salvar alterações"}
           </Button>
         </div>
 
@@ -193,7 +193,7 @@ const Configuracoes = () => {
         <div className="rounded-lg border border-border bg-card p-5">
           <div className="flex items-center gap-2 mb-4">
             <Shield className="h-4 w-4 text-primary" />
-            <h3 className="text-base font-semibold text-foreground">Politica antifuro</h3>
+            <h3 className="text-base font-semibold text-foreground">Política antifuro</h3>
           </div>
           <div className="space-y-3">
             {policyOptions.map((opt) => (

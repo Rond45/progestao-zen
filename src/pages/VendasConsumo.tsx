@@ -60,7 +60,7 @@ const VendasConsumo = () => {
   const createMutation = useMutation({
     mutationFn: async (values: typeof form) => {
       const product = products.find((p: any) => p.id === values.product_id);
-      if (!product) throw new Error("Produto nao encontrado");
+      if (!product) throw new Error("Produto não encontrado");
       const qty = parseInt(values.qty);
       const unit_price_cents = values.type === "sale" ? product.price_cents : null;
       const total_cents = values.type === "sale" ? product.price_cents * qty : null;

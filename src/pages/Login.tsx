@@ -149,7 +149,7 @@ const Login = () => {
         </form>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          {isSignUp ? "Ja tem conta?" : "Ainda nao tem conta?"}{" "}
+          {isSignUp ? "Já tem conta?" : "Ainda não tem conta?"}{" "}
           <button onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline font-medium">
             {isSignUp ? "Entrar" : "Criar conta"}
           </button>

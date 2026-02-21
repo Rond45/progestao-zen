@@ -67,7 +67,7 @@ const Servicos = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["services", businessId] });
-      toast({ title: "Servico removido" });
+      toast({ title: "Serviço removido" });
     },
     onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
@@ -86,18 +86,18 @@ const Servicos = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Servicos</h1>
-          <p className="text-sm text-muted-foreground mt-1">{services.length} servicos cadastrados</p>
+          <h1 className="text-2xl font-bold text-foreground">Serviços</h1>
+          <p className="text-sm text-muted-foreground mt-1">{services.length} serviços cadastrados</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button variant="emerald" size="sm" onClick={() => { resetForm(); setDialogOpen(true); }}>
-              <Plus className="h-4 w-4" /> Novo servico
+              <Plus className="h-4 w-4" /> Novo serviço
             </Button>
           </DialogTrigger>
           <DialogContent className="bg-card border-border">
             <DialogHeader>
-              <DialogTitle className="text-foreground">{editing ? "Editar servico" : "Novo servico"}</DialogTitle>
+              <DialogTitle className="text-foreground">{editing ? "Editar serviço" : "Novo serviço"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(form); }} className="space-y-4">
               <div className="space-y-2">
@@ -106,7 +106,7 @@ const Servicos = () => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Duracao (min)</Label>
+                  <Label className="text-muted-foreground">Duração (min)</Label>
                   <Input type="number" value={form.duration_minutes} onChange={(e) => setForm({ ...form, duration_minutes: e.target.value })} className="bg-background border-border text-foreground" required min="5" />
                 </div>
                 <div className="space-y-2">
@@ -125,7 +125,7 @@ const Servicos = () => {
       {isLoading ? (
         <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
       ) : services.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">Nenhum servico cadastrado ainda.</div>
+        <div className="text-center py-12 text-muted-foreground text-sm">Nenhum serviço cadastrado ainda.</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {services.map((service: any) => (

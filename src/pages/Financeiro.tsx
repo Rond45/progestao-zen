@@ -54,7 +54,7 @@ const Financeiro = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!financeAccess) {
-      setLoginError("Acesso financeiro nao configurado. Configure em Configuracoes.");
+      setLoginError("Acesso financeiro não configurado. Configure em Configurações.");
       return;
     }
     // Simple comparison (in production, use bcrypt via edge function)

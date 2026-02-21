@@ -87,7 +87,7 @@ const DashboardHome = () => {
     { label: "Agendamentos hoje", value: String(todayAppointments.length), icon: Calendar },
     { label: "Clientes cadastrados", value: String(clientCount), icon: Users },
     { label: "Profissionais ativos", value: String(professionalCount), icon: Users },
-    { label: "Servicos ativos", value: String(serviceCount), icon: ScissorsIcon },
+    { label: "Serviços ativos", value: String(serviceCount), icon: ScissorsIcon },
   ];
 
   return (
@@ -95,7 +95,7 @@ const DashboardHome = () => {
       <div>
         <h1 className="text-2xl font-bold text-foreground">Painel</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {business?.name || "Seu negocio"} - Visao geral
+          {business?.name || "Seu negócio"} - Visão geral
         </p>
       </div>
 

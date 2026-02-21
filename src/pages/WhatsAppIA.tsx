@@ -61,7 +61,7 @@ const WhatsAppIA = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">WhatsApp IA</h1>
-          <p className="text-sm text-muted-foreground mt-1">Automacao de atendimento via WhatsApp</p>
+          <p className="text-sm text-muted-foreground mt-1">Automação de atendimento via WhatsApp</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => navigate("/dashboard/configuracoes")}>
           <Settings className="h-4 w-4" />
@@ -81,7 +81,7 @@ const WhatsAppIA = () => {
                 {isConnected ? "WhatsApp conectado" : "WhatsApp desconectado"}
               </p>
               <p className="text-xs text-muted-foreground">
-                {isConnected ? connection?.phone_number || "Numero configurado" : "Configure nas configuracoes para conectar"}
+                {isConnected ? connection?.phone_number || "Número configurado" : "Configure nas configurações para conectar"}
               </p>
             </div>
           </div>

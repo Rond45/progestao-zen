@@ -10,7 +10,7 @@ const verticals = [
 {
   key: "barbearia",
   title: "Barbearia",
-  subtitle: "Gestao profissional para corte, barba e mais",
+  subtitle: "Gestão profissional para corte, barba e mais",
   image: heroBarbershop,
   icon: Scissors,
   route: "/barbearia/boas-vindas",
@@ -18,12 +18,12 @@ const verticals = [
 },
 {
   key: "salao",
-  title: "Salao de Beleza",
-  subtitle: "Gestao completa para saloes e studios",
+  title: "Salão de Beleza",
+  subtitle: "Gestão completa para salões e studios",
   image: heroSalon,
   icon: Sparkles,
   route: "/salao/boas-vindas",
-  btnLabel: "Selecionar Salao"
+  btnLabel: "Selecionar Salão"
 }];
 
 
@@ -49,7 +49,7 @@ const HeroSection = () => {
           <h1 className="text-3xl md:text-5xl font-bold text-foreground leading-tight tracking-tight mb-4">
             Gestão profissional para seu{" "}
             <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(90deg, #10B981, #34D399)" }}>
-              negocio
+              negócio
             </span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto">

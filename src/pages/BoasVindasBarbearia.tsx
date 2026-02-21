@@ -77,12 +77,12 @@ const BoasVindasBarbearia = () => {
                 navigate("/login?vertical=barbearia");
               }}
             >
-              Ja tenho conta
+              Já tenho conta
             </Button>
           </div>
 
           <button onClick={() => navigate("/")} className="mt-8 text-xs text-muted-foreground hover:text-foreground transition-colors">
-            Voltar para a pagina inicial
+            Voltar para a página inicial
           </button>
         </motion.div>
       </div>

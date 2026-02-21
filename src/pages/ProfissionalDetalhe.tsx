@@ -90,19 +90,19 @@ const ProfissionalDetalhe = () => {
       <div className="rounded-lg border border-border bg-card p-5">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-semibold text-foreground">
-            {professional.compensation_type === "percentage" ? "Comissao liquida" : "Salario mensal"}
+            {professional.compensation_type === "percentage" ? "Comissão líquida" : "Salário mensal"}
           </h3>
           <span className="text-lg font-bold text-primary">{formatPrice(liquido)}</span>
         </div>
         {professional.compensation_type === "salary" && (
-          <p className="text-xs text-muted-foreground">Modelo salario fixo. O valor bruto dos servicos nao afeta a remuneracao.</p>
+          <p className="text-xs text-muted-foreground">Modelo de salário fixo. O valor bruto dos serviços não afeta a remuneração.</p>
         )}
       </div>
 
       {isLoading ? (
         <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>
       ) : executions.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">Nenhum servico realizado ainda.</div>
+        <div className="text-center py-12 text-muted-foreground text-sm">Nenhum serviço realizado ainda.</div>
       ) : (
         <div className="rounded-lg border border-border bg-card overflow-hidden">
           <div className="overflow-x-auto">
@@ -111,7 +111,7 @@ const ProfissionalDetalhe = () => {
                 <tr className="border-b border-border">
                   <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Data</th>
                   <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Cliente</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Servico</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Serviço</th>
                   <th className="text-right text-xs font-medium text-muted-foreground px-5 py-3">Valor</th>
                 </tr>
               </thead>

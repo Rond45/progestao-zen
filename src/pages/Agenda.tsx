@@ -95,7 +95,7 @@ const Agenda = () => {
   const createMutation = useMutation({
     mutationFn: async (values: typeof form) => {
       const service = services.find((s: any) => s.id === values.service_id);
-      if (!service) throw new Error("Servico nao encontrado");
+      if (!service) throw new Error("Serviço não encontrado");
       const startsAt = new Date(`${values.date}T${values.time}`);
       const endsAt = addMinutes(startsAt, service.duration_minutes);
       const { error } = await supabase.from("appointments").insert({
@@ -115,7 +115,7 @@ const Agenda = () => {
       toast({ title: "Agendamento criado" });
     },
     onError: (e: any) => {
-      const msg = e.message?.includes("Conflito") ? e.message : "Erro ao criar agendamento. Verifique se nao ha conflito de horario.";
+      const msg = e.message?.includes("Conflito") ? e.message : "Erro ao criar agendamento. Verifique se não há conflito de horário.";
       toast({ title: "Erro", description: msg, variant: "destructive" });
     },
   });
@@ -140,7 +140,7 @@ const Agenda = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Agenda</h1>
-          <p className="text-sm text-muted-foreground mt-1">Gerencie os horarios dos profissionais</p>
+          <p className="text-sm text-muted-foreground mt-1">Gerencie os horários dos profissionais</p>
         </div>
         <Button variant="emerald" size="sm" onClick={() => {
           setForm({ ...form, date: format(currentDate, "yyyy-MM-dd") });

@@ -141,18 +141,18 @@ const Profissionais = () => {
                   <SelectTrigger className="bg-background border-border text-foreground"><SelectValue /></SelectTrigger>
                   <SelectContent className="bg-card border-border">
                     <SelectItem value="percentage">Porcentagem</SelectItem>
-                    <SelectItem value="salary">Salario</SelectItem>
+                    <SelectItem value="salary">Salário</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               {form.compensation_type === "percentage" ? (
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Percentual de comissao (%)</Label>
+                  <Label className="text-muted-foreground">Percentual de comissão (%)</Label>
                   <Input type="number" min="0" max="100" step="1" value={form.commission_percentage} onChange={(e) => setForm({ ...form, commission_percentage: e.target.value })} className="bg-background border-border text-foreground" required />
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Label className="text-muted-foreground">Salario mensal (R$)</Label>
+                  <Label className="text-muted-foreground">Salário mensal (R$)</Label>
                   <Input type="number" min="0" step="0.01" value={form.salary_cents} onChange={(e) => setForm({ ...form, salary_cents: e.target.value })} className="bg-background border-border text-foreground" required />
                 </div>
               )}
