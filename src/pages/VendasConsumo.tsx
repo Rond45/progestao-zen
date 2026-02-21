@@ -71,7 +71,7 @@ const VendasConsumo = () => {
         qty,
         unit_price_cents,
         total_cents,
-        client_id: values.client_id || null,
+        client_id: values.client_id && values.client_id !== "none" ? values.client_id : null,
         buyer_name: values.buyer_name || null,
       });
       if (error) throw error;
@@ -177,7 +177,7 @@ const VendasConsumo = () => {
               <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
                 <SelectTrigger className="bg-background border-border text-foreground"><SelectValue placeholder="Nenhum" /></SelectTrigger>
                 <SelectContent className="bg-card border-border">
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   {clients.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
