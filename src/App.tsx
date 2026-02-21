@@ -22,48 +22,68 @@ import Financeiro from "./pages/Financeiro";
 import WhatsAppIA from "./pages/WhatsAppIA";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
+import Termos from "./pages/Termos";
+import Privacidade from "./pages/Privacidade";
+import Suporte from "./pages/Suporte";
+import { useVerticalTheme } from "@/hooks/useVerticalTheme";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/registro" element={<Navigate to="/login" replace />} />
-            <Route path="/barbearia/boas-vindas" element={<BoasVindasBarbearia />} />
-            <Route path="/salao/boas-vindas" element={<BoasVindasSalao />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<DashboardHome />} />
-              <Route path="agenda" element={<Agenda />} />
-              <Route path="clientes" element={<Clientes />} />
-              <Route path="profissionais" element={<Profissionais />} />
-              <Route path="profissionais/:id" element={<ProfissionalDetalhe />} />
-              <Route path="servicos" element={<Servicos />} />
-              <Route path="produtos" element={<Produtos />} />
-              <Route path="vendas" element={<VendasConsumo />} />
-              <Route path="financeiro" element={<Financeiro />} />
-              <Route path="whatsapp" element={<WhatsAppIA />} />
-              <Route path="configuracoes" element={<Configuracoes />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Aplica o tema (cores) baseado na vertical salva no navegador.
+  // Assim, o usuário entra no dashboard já com o tema correto.
+  useVerticalTheme();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/registro" element={<Navigate to="/login" replace />} />
+
+              {/* Páginas institucionais */}
+              <Route path="/termos" element={<Termos />} />
+              <Route path="/privacidade" element={<Privacidade />} />
+              <Route path="/suporte" element={<Suporte />} />
+
+              {/* Escolha de ambiente */}
+              <Route path="/barbearia/boas-vindas" element={<BoasVindasBarbearia />} />
+              <Route path="/salao/boas-vindas" element={<BoasVindasSalao />} />
+
+              {/* App (área logada) */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<DashboardHome />} />
+                <Route path="agenda" element={<Agenda />} />
+                <Route path="clientes" element={<Clientes />} />
+                <Route path="profissionais" element={<Profissionais />} />
+                <Route path="profissionais/:id" element={<ProfissionalDetalhe />} />
+                <Route path="servicos" element={<Servicos />} />
+                <Route path="produtos" element={<Produtos />} />
+                <Route path="vendas" element={<VendasConsumo />} />
+                <Route path="financeiro" element={<Financeiro />} />
+                <Route path="whatsapp" element={<WhatsAppIA />} />
+                <Route path="configuracoes" element={<Configuracoes />} />
+              </Route>
+
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

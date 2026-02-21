@@ -75,6 +75,13 @@ const Landing = () => {
                 ProGestão<span className="text-primary">+</span>
               </span>
             </div>
+
+            <div className="flex items-center gap-4 text-xs">
+              <a href="/termos" className="text-muted-foreground hover:text-foreground">Termos</a>
+              <a href="/privacidade" className="text-muted-foreground hover:text-foreground">Privacidade</a>
+              <a href="/suporte" className="text-muted-foreground hover:text-foreground">Suporte</a>
+            </div>
+
             <p className="text-xs text-muted-foreground">
               Todos os direitos reservados. ProGestão+ 2026.
             </p>
