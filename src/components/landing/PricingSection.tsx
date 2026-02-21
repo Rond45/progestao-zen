@@ -58,7 +58,27 @@ const PricingSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section id="planos" className="py-24 border-t border-border">
+    <section
+      id="planos"
+      className="py-24 border-t border-border relative overflow-hidden"
+      style={{
+        background: "linear-gradient(160deg, #0A0F14 0%, #12100a 30%, #1a1508 50%, #0d0b06 70%, #0A0F14 100%)",
+      }}
+    >
+      {/* Gold ambient glow */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse 50% 50% at 50% 30%, rgba(184,143,60,0.07), transparent 70%), radial-gradient(ellipse 40% 40% at 80% 70%, rgba(184,143,60,0.04), transparent 60%)",
+        }}
+      />
+      {/* Subtle gold line accent */}
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 h-px w-1/3"
+        style={{
+          background: "linear-gradient(90deg, transparent, rgba(184,143,60,0.3), transparent)",
+        }}
+      />
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -72,16 +92,17 @@ const PricingSection = () => {
           {plans.map((plan, i) => (
             <motion.div
               key={plan.name}
-              className={`rounded-xl border p-6 flex flex-col transition-all duration-250 ${
+              className={`rounded-xl border p-6 flex flex-col transition-all duration-250 relative ${
                 plan.popular
-                  ? "border-primary/40 bg-card relative"
-                  : "border-border bg-card hover:border-border/80"
+                  ? "border-[rgba(184,143,60,0.4)]"
+                  : "border-border/60 hover:border-[rgba(184,143,60,0.25)]"
               }`}
-              style={
-                plan.popular
-                  ? { boxShadow: "0 0 0 1px rgba(16,185,129,0.2)" }
-                  : undefined
-              }
+              style={{
+                background: "linear-gradient(135deg, rgba(20,18,12,0.9), rgba(14,12,10,0.95))",
+                boxShadow: plan.popular
+                  ? "0 0 0 1px rgba(184,143,60,0.15), 0 10px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(184,143,60,0.1)"
+                  : "inset 0 1px 0 rgba(184,143,60,0.06)",
+              }}
               custom={i}
               initial="hidden"
               whileInView="visible"
@@ -89,7 +110,7 @@ const PricingSection = () => {
               variants={fadeUp}
             >
               {plan.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1 rounded-full" style={{ background: "linear-gradient(135deg, #b88f3c, #d4a84b)", color: "#0A0F14" }}>
                   Mais popular
                 </div>
               )}

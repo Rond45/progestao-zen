@@ -58,7 +58,27 @@ const fadeUp = {
 
 const FeaturesSection = () => {
   return (
-    <section id="funcionalidades" className="py-24 border-t border-border">
+    <section
+      id="funcionalidades"
+      className="py-24 border-t border-border relative overflow-hidden"
+      style={{
+        background: "linear-gradient(160deg, #0A0F14 0%, #1a1508 35%, #0d0b06 55%, #0A0F14 100%)",
+      }}
+    >
+      {/* Gold ambient glow */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse 60% 40% at 30% 20%, rgba(184,143,60,0.08), transparent 70%), radial-gradient(ellipse 50% 50% at 70% 80%, rgba(184,143,60,0.05), transparent 60%)",
+        }}
+      />
+      {/* Subtle gold line accent */}
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 h-px w-1/3"
+        style={{
+          background: "linear-gradient(90deg, transparent, rgba(184,143,60,0.3), transparent)",
+        }}
+      />
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -73,9 +93,9 @@ const FeaturesSection = () => {
           {features.map((feature, i) => (
             <motion.div
               key={feature.title}
-              className="group rounded-xl border border-border p-6 transition-all duration-250 hover:border-primary/30 hover:-translate-y-1"
-              style={{ background: "#11151B" }}
-              whileHover={{ boxShadow: "0 15px 30px rgba(0,0,0,0.4)" }}
+              className="group rounded-xl border border-border/60 p-6 transition-all duration-250 hover:border-[rgba(184,143,60,0.35)] hover:-translate-y-1 relative"
+              style={{ background: "linear-gradient(135deg, rgba(20,18,12,0.9), rgba(14,12,10,0.95))", boxShadow: "inset 0 1px 0 rgba(184,143,60,0.06)" }}
+              whileHover={{ boxShadow: "0 15px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(184,143,60,0.1)" }}
               custom={i}
               initial="hidden"
               whileInView="visible"
