@@ -25,6 +25,7 @@ import NotFound from "./pages/NotFound";
 import Termos from "./pages/Termos";
 import Privacidade from "./pages/Privacidade";
 import Suporte from "./pages/Suporte";
+import Planos from "./pages/Planos";
 import { useVerticalTheme } from "@/hooks/useVerticalTheme";
 
 const queryClient = new QueryClient();
@@ -76,6 +77,7 @@ const App = () => {
                 <Route path="whatsapp" element={<WhatsAppIA />} />
                 <Route path="configuracoes" element={<Configuracoes />} />
               </Route>
+              <Route path="/planos" element={<Planos />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
