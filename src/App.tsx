@@ -76,8 +76,8 @@ const App = () => {
                 <Route path="financeiro" element={<Financeiro />} />
                 <Route path="whatsapp" element={<WhatsAppIA />} />
                 <Route path="configuracoes" element={<Configuracoes />} />
+                <Route path="planos" element={<Planos />} />
               </Route>
-              <Route path="/planos" element={<Planos />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
