@@ -63,30 +63,30 @@ const App = () => {
                                                                                 element={
                                                                                                     <ProtectedRoute>
                                                                                                                         <DashboardLayout />
-                                                                                                      </ProtectedRoute>ProtectedRoute>
-                                                                }
-                                                                            >
-                                                                              <Route index element={<DashboardHome />} />
-                                                                              <Route path="agenda" element={<Agenda />} />
-                                                                              <Route path="clientes" element={<Clientes />} />
-                                                                              <Route path="profissionais" element={<Profissionais />} />
-                                                                              <Route path="profissionais/:id" element={<ProfissionalDetalhe />} />
-                                                                              <Route path="servicos" element={<Servicos />} />
-                                                                              <Route path="produtos" element={<Produtos />} />
-                                                                              <Route path="vendas" element={<VendasConsumo />} />
-                                                                              <Route path="financeiro" element={<Financeiro />} />
-                                                                              <Route path="whatsapp" element={<WhatsAppIA />} />
-                                                                              <Route path="configuracoes" element={<Configuracoes />} />
-                                                                              <Route path="planos" element={<Planos />} />
-                                                              </Route>Route>
-                                                
-                                                              <Route path="*" element={<NotFound />} />
-                                                </Routes>Routes>
-                                    </BrowserRouter>BrowserRouter>
-                          </TooltipProvider>TooltipProvider>
-                  </AuthProvider>AuthProvider>
-          </QueryClientProvider>QueryClientProvider>
-        );
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<DashboardHome />} />
+                  <Route path="agenda" element={<Agenda />} />
+                  <Route path="clientes" element={<Clientes />} />
+                  <Route path="profissionais" element={<Profissionais />} />
+                  <Route path="profissionais/:id" element={<ProfissionalDetalhe />} />
+                  <Route path="servicos" element={<Servicos />} />
+                  <Route path="produtos" element={<Produtos />} />
+                  <Route path="vendas" element={<VendasConsumo />} />
+                  <Route path="financeiro" element={<Financeiro />} />
+                  <Route path="whatsapp" element={<WhatsAppIA />} />
+                  <Route path="configuracoes" element={<Configuracoes />} />
+                  <Route path="planos" element={<Planos />} />
+                </Route>
+
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    );
 };
 
-export default App;</AuthProvider>
+export default App;
