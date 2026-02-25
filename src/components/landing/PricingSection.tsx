@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
 
 const plans = [
   {
@@ -60,17 +59,11 @@ const fadeUp = {
 
 const PricingSection = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const handlePlanClick = (planId: string) => {
-    if (user) {
-      // Already logged in — go straight to checkout
-      navigate("/dashboard/planos?plan=" + planId);
-    } else {
-      // Not logged in — save plan, go to login/signup
-      localStorage.setItem("selectedPlan", planId);
-      navigate("/login");
-    }
+    // Always go through login — if already authenticated, Login page redirects automatically
+    localStorage.setItem("selectedPlan", planId);
+    navigate("/login");
   };
 
   return (

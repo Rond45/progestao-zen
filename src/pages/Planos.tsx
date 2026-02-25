@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Check, Crown, Zap, Star, ExternalLink, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,11 +62,13 @@ const statusLabels: Record<string, { label: string; variant: "default" | "second
 
 const Planos = () => {
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+  const autoCheckoutTriggered = useRef(false);
 
   useEffect(() => {
     const status = searchParams.get("status");
@@ -77,17 +79,16 @@ const Planos = () => {
     }
   }, [searchParams]);
 
-  // Auto-trigger checkout when redirected from landing with ?plan=
+  // Auto-trigger checkout when redirected from landing/login with ?plan=
   useEffect(() => {
-    if (!user || loading) return;
+    if (!user || loading || autoCheckoutTriggered.current) return;
     const planParam = searchParams.get("plan");
     if (!planParam) return;
     const plan = PLANS.find((p) => p.id === planParam);
     if (plan) {
-      // Remove param to avoid re-trigger
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete("plan");
-      window.history.replaceState({}, "", window.location.pathname + (newParams.toString() ? "?" + newParams.toString() : ""));
+      autoCheckoutTriggered.current = true;
+      // Clean URL using React Router (replaces current history entry)
+      setSearchParams({}, { replace: true });
       handleCheckout(plan.priceId, plan.id);
     }
   }, [user, loading, searchParams]);
