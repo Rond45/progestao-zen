@@ -12,7 +12,7 @@ const PLANS = [
     id: "basico",
     name: "Básico",
     price: "39",
-    priceId: import.meta.env.VITE_STRIPE_PRICE_BASICO ?? "",
+    priceId: import.meta.env.VITE_STRIPE_PRICE_BASICO || "price_1T48dkQrmNyfafHt347XuRUG",
     description: "Ideal para profissionais autônomos",
     icon: Star,
     features: ["1 profissional", "Agenda completa", "Cadastro de clientes", "Financeiro básico", "50 agendamentos/mês"],
@@ -21,7 +21,7 @@ const PLANS = [
     id: "pro",
     name: "Pro",
     price: "89",
-    priceId: import.meta.env.VITE_STRIPE_PRICE_PRO ?? "",
+    priceId: import.meta.env.VITE_STRIPE_PRICE_PRO || "price_1T48l6QrmNyfafHtWFDjf5cQ",
     description: "Para equipes em crescimento",
     icon: Zap,
     popular: true,
@@ -38,7 +38,7 @@ const PLANS = [
     id: "premium",
     name: "Premium",
     price: "169",
-    priceId: import.meta.env.VITE_STRIPE_PRICE_PREMIUM ?? "",
+    priceId: import.meta.env.VITE_STRIPE_PRICE_PREMIUM || "price_1T48mmQrmNyfafHtiUztlp7B",
     description: "Controle total do seu negócio",
     icon: Crown,
     features: [
@@ -76,6 +76,21 @@ const Planos = () => {
       toast.info("Checkout cancelado. Você pode assinar quando quiser.");
     }
   }, [searchParams]);
+
+  // Auto-trigger checkout when redirected from landing with ?plan=
+  useEffect(() => {
+    if (!user || loading) return;
+    const planParam = searchParams.get("plan");
+    if (!planParam) return;
+    const plan = PLANS.find((p) => p.id === planParam);
+    if (plan) {
+      // Remove param to avoid re-trigger
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("plan");
+      window.history.replaceState({}, "", window.location.pathname + (newParams.toString() ? "?" + newParams.toString() : ""));
+      handleCheckout(plan.priceId, plan.id);
+    }
+  }, [user, loading, searchParams]);
 
   useEffect(() => {
     const fetchSubscription = async () => {

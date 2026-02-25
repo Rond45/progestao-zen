@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 
 const plans = [
   {
+    id: "basico",
     name: "Básico",
     price: "39",
     description: "Ideal para profissionais autônomos",
@@ -17,6 +18,7 @@ const plans = [
     ],
   },
   {
+    id: "pro",
     name: "Pro",
     price: "89",
     description: "Para equipes em crescimento",
@@ -31,6 +33,7 @@ const plans = [
     ],
   },
   {
+    id: "premium",
     name: "Premium",
     price: "169",
     description: "Controle total do seu negócio",
@@ -140,7 +143,10 @@ const PricingSection = () => {
               <Button
                 variant={plan.popular ? "emerald" : "outline"}
                 className="w-full"
-                onClick={() => navigate("/login")}
+                onClick={() => {
+                  localStorage.setItem("selectedPlan", plan.id);
+                  navigate("/login");
+                }}
               >
                 Começar agora
               </Button>
