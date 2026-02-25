@@ -34,7 +34,15 @@ const Login = () => {
   }, [vertical]);
 
   useEffect(() => {
-    if (user) navigate("/dashboard", { replace: true });
+    if (user) {
+      const selectedPlan = localStorage.getItem("selectedPlan");
+      if (selectedPlan) {
+        localStorage.removeItem("selectedPlan");
+        navigate("/dashboard/planos?plan=" + selectedPlan, { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    }
   }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
