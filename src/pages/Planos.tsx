@@ -15,13 +15,7 @@ const PLANS = [
     priceId: import.meta.env.VITE_STRIPE_PRICE_BASICO ?? "",
     description: "Ideal para profissionais autônomos",
     icon: Star,
-    features: [
-      "1 profissional",
-      "Agenda completa",
-      "Cadastro de clientes",
-      "Financeiro básico",
-      "50 agendamentos/mês",
-    ],
+    features: ["1 profissional", "Agenda completa", "Cadastro de clientes", "Financeiro básico", "50 agendamentos/mês"],
   },
   {
     id: "pro",
@@ -87,11 +81,7 @@ const Planos = () => {
     const fetchSubscription = async () => {
       if (!user) return;
       setLoading(true);
-      const { data, error } = await supabase
-        .from("subscriptions" as any)
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      const { data, error } = await supabase.from("subscriptions").select("*").eq("user_id", user.id).maybeSingle();
 
       if (!error && data) {
         setSubscription(data);
@@ -165,9 +155,7 @@ const Planos = () => {
                   Plano {currentPlan?.charAt(0).toUpperCase() + currentPlan?.slice(1)}
                 </p>
                 {statusLabels[currentStatus] && (
-                  <Badge variant={statusLabels[currentStatus].variant}>
-                    {statusLabels[currentStatus].label}
-                  </Badge>
+                  <Badge variant={statusLabels[currentStatus].variant}>{statusLabels[currentStatus].label}</Badge>
                 )}
               </div>
             </div>
@@ -192,9 +180,7 @@ const Planos = () => {
             <AlertCircle className="h-5 w-5 text-destructive" />
             <div>
               <p className="font-semibold text-foreground">Pagamento pendente</p>
-              <p className="text-sm text-muted-foreground">
-                Atualize seu método de pagamento para manter o acesso.
-              </p>
+              <p className="text-sm text-muted-foreground">Atualize seu método de pagamento para manter o acesso.</p>
             </div>
           </div>
           <Button variant="destructive" size="sm" className="mt-4" onClick={handlePortal} disabled={portalLoading}>
@@ -254,9 +240,7 @@ const Planos = () => {
                   disabled={!!checkoutLoading}
                   onClick={() => handleCheckout(plan.priceId, plan.id)}
                 >
-                  {checkoutLoading === plan.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  ) : null}
+                  {checkoutLoading === plan.id ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   {isActive ? "Trocar plano" : "Assinar"}
                 </Button>
               )}
