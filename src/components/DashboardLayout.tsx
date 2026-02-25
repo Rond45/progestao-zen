@@ -1,8 +1,20 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard, Calendar, Users, Scissors, MessageSquare,
-  DollarSign, Settings, Menu, X, LogOut, UserRound, Package, ShoppingCart, CreditCard,
+  LayoutDashboard,
+  Calendar,
+  Users,
+  Scissors,
+  MessageSquare,
+  DollarSign,
+  Settings,
+  Menu,
+  X,
+  LogOut,
+  UserRound,
+  Package,
+  ShoppingCart,
+  CreditCard,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useBusiness } from "@/hooks/useBusiness";
@@ -17,7 +29,7 @@ const navItems = [
   { to: "/dashboard/vendas", icon: ShoppingCart, label: "Vendas e Consumo" },
   { to: "/dashboard/financeiro", icon: DollarSign, label: "Financeiro" },
   { to: "/dashboard/whatsapp", icon: MessageSquare, label: "WhatsApp IA" },
-    { to: "/planos", icon: CreditCard, label: "Planos" },
+  { to: "/dashboard/planos", icon: CreditCard, label: "Planos" },
   { to: "/dashboard/configuracoes", icon: Settings, label: "Configurações" },
 ];
 
@@ -55,7 +67,10 @@ const DashboardLayout = () => {
               ProGestao<span className="text-sidebar-primary">+</span>
             </span>
           </div>
-          <button className="lg:hidden text-muted-foreground hover:text-foreground" onClick={() => setSidebarOpen(false)}>
+          <button
+            className="lg:hidden text-muted-foreground hover:text-foreground"
+            onClick={() => setSidebarOpen(false)}
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -69,7 +84,9 @@ const DashboardLayout = () => {
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                  isActive ? "bg-sidebar-accent text-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
+                  isActive
+                    ? "bg-sidebar-accent text-foreground"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
                 }`
               }
             >
@@ -99,7 +116,10 @@ const DashboardLayout = () => {
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 border-b border-border flex items-center justify-between px-4 lg:px-6 bg-background/80 backdrop-blur-sm sticky top-0 z-30">
-          <button className="lg:hidden text-muted-foreground hover:text-foreground" onClick={() => setSidebarOpen(true)}>
+          <button
+            className="lg:hidden text-muted-foreground hover:text-foreground"
+            onClick={() => setSidebarOpen(true)}
+          >
             <Menu className="h-5 w-5" />
           </button>
           <div className="hidden lg:block">
