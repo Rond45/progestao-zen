@@ -9,12 +9,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, subDays, startOfDay, endOfDay, addMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const hours = Array.from({ length: 12 }, (_, i) => `${(i + 8).toString().padStart(2, "0")}:00`);
 
@@ -39,7 +35,11 @@ const Agenda = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({
-    client_id: "", professional_id: "", service_id: "", date: "", time: "",
+    client_id: "",
+    professional_id: "",
+    service_id: "",
+    date: "",
+    time: "",
   });
 
   const dayStart = startOfDay(currentDate).toISOString();
@@ -48,7 +48,12 @@ const Agenda = () => {
   const { data: professionals = [] } = useQuery({
     queryKey: ["professionals", businessId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("professionals").select("*").eq("business_id", businessId!).eq("active", true).order("name");
+      const { data, error } = await supabase
+        .from("professionals")
+        .select("*")
+        .eq("business_id", businessId!)
+        .eq("active", true)
+        .order("name");
       if (error) throw error;
       return data;
     },
@@ -68,7 +73,12 @@ const Agenda = () => {
   const { data: services = [] } = useQuery({
     queryKey: ["services", businessId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("services").select("*").eq("business_id", businessId!).eq("active", true).order("name");
+      const { data, error } = await supabase
+        .from("services")
+        .select("*")
+        .eq("business_id", businessId!)
+        .eq("active", true)
+        .order("name");
       if (error) throw error;
       return data;
     },
@@ -115,7 +125,9 @@ const Agenda = () => {
       toast({ title: "Agendamento criado" });
     },
     onError: (e: any) => {
-      const msg = e.message?.includes("Conflito") ? e.message : "Erro ao criar agendamento. Verifique se não há conflito de horário.";
+      const msg = e.message?.includes("Conflito")
+        ? e.message
+        : "Erro ao criar agendamento. Verifique se não há conflito de horário.";
       toast({ title: "Erro", description: msg, variant: "destructive" });
     },
   });
@@ -142,32 +154,49 @@ const Agenda = () => {
           <h1 className="text-2xl font-bold text-foreground">Agenda</h1>
           <p className="text-sm text-muted-foreground mt-1">Gerencie os horários dos profissionais</p>
         </div>
-        <Button variant="emerald" size="sm" onClick={() => {
-          setForm({ ...form, date: format(currentDate, "yyyy-MM-dd") });
-          setDialogOpen(true);
-        }}>
+        <Button
+          variant="emerald"
+          size="sm"
+          onClick={() => {
+            setForm({ ...form, date: format(currentDate, "yyyy-MM-dd") });
+            setDialogOpen(true);
+          }}
+        >
           <Plus className="h-4 w-4" /> Novo agendamento
         </Button>
       </div>
 
       <div className="flex items-center gap-4">
-        <button onClick={() => setCurrentDate(subDays(currentDate, 1))} className="text-muted-foreground hover:text-foreground">
+        <button
+          onClick={() => setCurrentDate(subDays(currentDate, 1))}
+          className="text-muted-foreground hover:text-foreground"
+        >
           <ChevronLeft className="h-5 w-5" />
         </button>
         <h3 className="text-sm font-semibold text-foreground">
           {format(currentDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: ptBR })}
         </h3>
-        <button onClick={() => setCurrentDate(addDays(currentDate, 1))} className="text-muted-foreground hover:text-foreground">
+        <button
+          onClick={() => setCurrentDate(addDays(currentDate, 1))}
+          className="text-muted-foreground hover:text-foreground"
+        >
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
 
       {professionals.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground text-sm">Cadastre profissionais para usar a agenda.</div>
+        <div className="text-center py-12 text-muted-foreground text-sm">
+          Cadastre profissionais para usar a agenda.
+        </div>
       ) : (
         <div className="rounded-lg border border-border bg-card overflow-hidden">
-          <div className="grid border-b border-border" style={{ gridTemplateColumns: `60px repeat(${professionals.length}, 1fr)` }}>
-            <div className="p-3 border-r border-border"><Clock className="h-4 w-4 text-muted-foreground" /></div>
+          <div
+            className="grid border-b border-border"
+            style={{ gridTemplateColumns: `60px repeat(${professionals.length}, 1fr)` }}
+          >
+            <div className="p-3 border-r border-border">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </div>
             {professionals.map((p: any) => (
               <div key={p.id} className="p-3 text-center border-r border-border last:border-r-0">
                 <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center mx-auto mb-1">
@@ -178,7 +207,11 @@ const Agenda = () => {
             ))}
           </div>
           {hours.map((hour) => (
-            <div key={hour} className="grid border-b border-border last:border-b-0" style={{ gridTemplateColumns: `60px repeat(${professionals.length}, 1fr)` }}>
+            <div
+              key={hour}
+              className="grid border-b border-border last:border-b-0"
+              style={{ gridTemplateColumns: `60px repeat(${professionals.length}, 1fr)` }}
+            >
               <div className="px-3 py-4 border-r border-border">
                 <span className="text-xs text-muted-foreground">{hour}</span>
               </div>
@@ -190,7 +223,12 @@ const Agenda = () => {
                       <button
                         key={event.id}
                         onClick={() => {
-                          const next = event.status === "scheduled" ? "confirmed" : event.status === "confirmed" ? "done" : event.status;
+                          const next =
+                            event.status === "scheduled"
+                              ? "confirmed"
+                              : event.status === "confirmed"
+                                ? "done"
+                                : event.status;
                           if (next !== event.status) updateStatus.mutate({ id: event.id, status: next as any });
                         }}
                         className={`w-full rounded-md bg-secondary/60 border-l-2 ${statusColors[event.status] || "border-l-border"} px-2.5 py-2 text-left hover:bg-secondary transition-colors`}
@@ -213,42 +251,84 @@ const Agenda = () => {
           <DialogHeader>
             <DialogTitle className="text-foreground">Novo agendamento</DialogTitle>
           </DialogHeader>
-          <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(form); }} className="space-y-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              createMutation.mutate(form);
+            }}
+            className="space-y-4"
+          >
             <div className="space-y-2">
               <Label className="text-muted-foreground">Cliente</Label>
               <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
-                <SelectTrigger className="bg-background border-border text-foreground"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger className="bg-background border-border text-foreground">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
                 <SelectContent className="bg-card border-border">
-                  {clients.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  {clients
+                    .filter((c: any) => c.id)
+                    .map((c: any) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label className="text-muted-foreground">Profissional</Label>
               <Select value={form.professional_id} onValueChange={(v) => setForm({ ...form, professional_id: v })}>
-                <SelectTrigger className="bg-background border-border text-foreground"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger className="bg-background border-border text-foreground">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
                 <SelectContent className="bg-card border-border">
-                  {professionals.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                  {professionals
+                    .filter((p: any) => p.id)
+                    .map((p: any) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label className="text-muted-foreground">Servico</Label>
               <Select value={form.service_id} onValueChange={(v) => setForm({ ...form, service_id: v })}>
-                <SelectTrigger className="bg-background border-border text-foreground"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectTrigger className="bg-background border-border text-foreground">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
                 <SelectContent className="bg-card border-border">
-                  {services.map((s: any) => <SelectItem key={s.id} value={s.id}>{s.name} ({s.duration_minutes}min)</SelectItem>)}
+                  {services
+                    .filter((s: any) => s.id)
+                    .map((s: any) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name} ({s.duration_minutes}min)
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Data</Label>
-                <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="bg-background border-border text-foreground" required />
+                <Input
+                  type="date"
+                  value={form.date}
+                  onChange={(e) => setForm({ ...form, date: e.target.value })}
+                  className="bg-background border-border text-foreground"
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-muted-foreground">Horario</Label>
-                <Input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} className="bg-background border-border text-foreground" required />
+                <Input
+                  type="time"
+                  value={form.time}
+                  onChange={(e) => setForm({ ...form, time: e.target.value })}
+                  className="bg-background border-border text-foreground"
+                  required
+                />
               </div>
             </div>
             <Button type="submit" variant="emerald" className="w-full" disabled={createMutation.isPending}>
