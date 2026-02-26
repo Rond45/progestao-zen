@@ -26,6 +26,7 @@ import Termos from "./pages/Termos";
 import Privacidade from "./pages/Privacidade";
 import Suporte from "./pages/Suporte";
 import Planos from "./pages/Planos";
+import PlanosPublico from "./pages/PlanosPublico";
 import { useVerticalTheme } from "@/hooks/useVerticalTheme";
 
 const queryClient = new QueryClient();
