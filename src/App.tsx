@@ -52,7 +52,7 @@ const App = () => {
                                                               <Route path="/termos" element={<Termos />} />
                                                               <Route path="/privacidade" element={<Privacidade />} />
                                                               <Route path="/suporte" element={<Suporte />} />
-                                                              <Route path="/planos" element={<Planos />} />
+                                                              <Route path="/planos" element={<PlanosPublico />} />
                                                 
                                                   {/* Escolha de ambiente */}
                                                               <Route path="/barbearia/boas-vindas" element={<BoasVindasBarbearia />} />
