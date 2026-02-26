@@ -26,6 +26,7 @@ import Termos from "./pages/Termos";
 import Privacidade from "./pages/Privacidade";
 import Suporte from "./pages/Suporte";
 import Planos from "./pages/Planos";
+import PlanosPublico from "./pages/PlanosPublico";
 import { useVerticalTheme } from "@/hooks/useVerticalTheme";
 
 const queryClient = new QueryClient();
@@ -51,7 +52,7 @@ const App = () => {
                                                               <Route path="/termos" element={<Termos />} />
                                                               <Route path="/privacidade" element={<Privacidade />} />
                                                               <Route path="/suporte" element={<Suporte />} />
-                                                              <Route path="/planos" element={<Planos />} />
+                                                              <Route path="/planos" element={<PlanosPublico />} />
                                                 
                                                   {/* Escolha de ambiente */}
                                                               <Route path="/barbearia/boas-vindas" element={<BoasVindasBarbearia />} />
