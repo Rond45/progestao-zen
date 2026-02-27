@@ -27,6 +27,7 @@ import Privacidade from "./pages/Privacidade";
 import Suporte from "./pages/Suporte";
 import Planos from "./pages/Planos";
 import PlanosPublico from "./pages/PlanosPublico";
+import ClienteDetalhe from "./pages/ClienteDetalhe";
 import { useVerticalTheme } from "@/hooks/useVerticalTheme";
 
 const queryClient = new QueryClient();
@@ -70,6 +71,7 @@ const App = () => {
                   <Route index element={<DashboardHome />} />
                   <Route path="agenda" element={<Agenda />} />
                   <Route path="clientes" element={<Clientes />} />
+                  <Route path="clientes/:id" element={<ClienteDetalhe />} />
                   <Route path="profissionais" element={<Profissionais />} />
                   <Route path="profissionais/:id" element={<ProfissionalDetalhe />} />
                   <Route path="servicos" element={<Servicos />} />
