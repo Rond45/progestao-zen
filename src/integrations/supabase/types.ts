@@ -158,24 +158,30 @@ export type Database = {
       }
       clients: {
         Row: {
+          avatar_url: string | null
           business_id: string
           created_at: string
+          email: string | null
           id: string
           name: string
           notes: string | null
           phone: string | null
         }
         Insert: {
+          avatar_url?: string | null
           business_id: string
           created_at?: string
+          email?: string | null
           id?: string
           name: string
           notes?: string | null
           phone?: string | null
         }
         Update: {
+          avatar_url?: string | null
           business_id?: string
           created_at?: string
+          email?: string | null
           id?: string
           name?: string
           notes?: string | null
