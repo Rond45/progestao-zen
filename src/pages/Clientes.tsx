@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,7 @@ const Clientes = () => {
   const { businessId } = useBusiness();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<any>(null);
@@ -200,7 +202,7 @@ const Clientes = () => {
                             {client.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
                           </span>
                         </div>
-                        <span className="text-sm font-medium text-foreground">{client.name}</span>
+                        <button onClick={() => navigate(`/dashboard/clientes/${client.id}`)} className="text-sm font-medium text-foreground hover:text-primary transition-colors">{client.name}</button>
                       </div>
                     </td>
                     <td className="px-5 py-3.5 hidden sm:table-cell">
