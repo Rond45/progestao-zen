@@ -72,7 +72,7 @@ const Login = () => {
           password,
         });
         if (error) throw error;
-        navigate("/dashboard");
+        // Navigation is handled by useEffect watching `user` state
       }
     } catch (error: any) {
       toast({
