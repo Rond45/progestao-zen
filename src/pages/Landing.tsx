@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Scissors } from "lucide-react";
@@ -9,6 +10,15 @@ import PricingSection from "@/components/landing/PricingSection";
 const Landing = () => {
   const navigate = useNavigate();
 
+  // Apply landing-specific theme, strip vertical themes
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove("salon-theme");
+    root.classList.add("landing-theme");
+    return () => {
+      root.classList.remove("landing-theme");
+    };
+  }, []);
   return (
     <div
       className="min-h-screen bg-background"
