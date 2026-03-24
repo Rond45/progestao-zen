@@ -184,6 +184,11 @@
     background: linear-gradient(165deg, hsl(240 33% 5%) 0%, hsl(264 35% 6%) 100%);
   }
 
+  .landing-theme,
+  .landing-theme body {
+    background: linear-gradient(165deg, hsl(30 8% 4%) 0%, hsl(30 10% 6%) 100%);
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
