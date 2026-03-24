@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, Crown, Zap, Star, Scissors } from "lucide-react";
 import { Button } from "@/components/ui/button";
