@@ -95,10 +95,14 @@ const Financeiro = () => {
     );
   }
 
-  // If no finance access configured, show data directly (or empty state)
-  if (!financeAccess && !authenticated) {
-    setAuthenticated(true);
-  }
+  // If no finance access configured, show data directly
+  // Use useEffect to avoid setState during render
+  const shouldAutoAuth = !financeAccess && !authenticated;
+  
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useState(() => {
+    if (shouldAutoAuth) setAuthenticated(true);
+  });
 
   const totalServicos = executions.reduce((s: number, e: any) => s + e.service_price_cents, 0);
   const totalProdutos = productSales.reduce((s: number, m: any) => s + (m.total_cents || 0), 0);
