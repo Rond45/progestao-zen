@@ -28,6 +28,35 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState("");
+  const [forgotPassword, setForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+
+  const translateError = (msg: string): string => {
+    if (msg.includes("Invalid login credentials")) return "E-mail ou senha incorretos.";
+    if (msg.includes("Email not confirmed")) return "Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.";
+    if (msg.includes("User already registered")) return "Este e-mail já está cadastrado. Tente fazer login.";
+    if (msg.includes("at least 6 characters")) return "A senha deve ter pelo menos 6 caracteres.";
+    if (msg.includes("Too many requests") || msg.includes("rate limit")) return "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
+    return "Ocorreu um erro. Tente novamente.";
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotEmail) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: window.location.origin + '/login',
+      });
+      if (error) throw error;
+      toast({ title: "Link enviado", description: "Enviamos um link de recuperação para o seu e-mail." });
+      setForgotPassword(false);
+      setForgotEmail("");
+    } catch (error: any) {
+      toast({ title: "Erro", description: translateError(error.message), variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (vertical) storeVertical(vertical);
