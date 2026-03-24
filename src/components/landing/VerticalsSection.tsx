@@ -68,7 +68,7 @@ const VerticalsSection = () => {
 
                 <div
                 className="absolute inset-0"
-                style={{ background: "rgba(10,15,20,0.3)" }} />
+                style={{ background: "rgba(10,15,20,0.1)" }} />
 
                 <div className="absolute inset-0 flex items-center justify-center">
                   

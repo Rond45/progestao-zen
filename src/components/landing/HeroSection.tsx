@@ -73,7 +73,7 @@ const HeroSection = () => {
 
               <div className="relative h-48 overflow-hidden">
                 <img src={v.image} alt={v.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
-                <div className="absolute inset-0" style={{ background: "rgba(10,15,20,0.3)" }} />
+                <div className="absolute inset-0" style={{ background: "rgba(10,15,20,0.1)" }} />
                 <div className="absolute inset-0 flex items-center justify-center">
                   
 
