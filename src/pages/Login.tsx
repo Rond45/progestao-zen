@@ -182,6 +182,34 @@ const Login = () => {
               </button>
             </div>
           </div>
+
+          {!isSignUp && !forgotPassword && (
+            <button type="button" onClick={() => setForgotPassword(true)} className="text-xs text-primary hover:underline">
+              Esqueci minha senha
+            </button>
+          )}
+
+          {forgotPassword && (
+            <div className="space-y-2 p-3 rounded-md border border-border bg-card/50">
+              <Label className="text-sm text-muted-foreground">Digite seu e-mail para recuperar a senha</Label>
+              <Input
+                type="email"
+                placeholder="seu@email.com"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                className="bg-card border-border text-foreground placeholder:text-muted-foreground/50"
+              />
+              <div className="flex gap-2">
+                <Button type="button" variant="emerald" size="sm" className="flex-1" disabled={loading || !forgotEmail} onClick={handleForgotPassword}>
+                  {loading ? "Enviando..." : "Enviar link"}
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => { setForgotPassword(false); setForgotEmail(""); }}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
+
           <Button type="submit" variant="emerald" className="w-full" size="lg" disabled={loading}>
             {loading ? "Aguarde..." : isSignUp ? "Criar conta" : "Entrar"}
           </Button>
