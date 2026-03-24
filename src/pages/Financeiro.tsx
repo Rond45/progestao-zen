@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DollarSign, TrendingUp, Wallet, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ const Financeiro = () => {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
 
-  const { data: financeAccess } = useQuery({
+  const { data: financeAccess, isLoading: financeAccessLoading } = useQuery({
     queryKey: ["finance-access", businessId],
     queryFn: async () => {
       const { data, error } = await supabase.from("finance_access").select("*").eq("business_id", businessId!).maybeSingle();
@@ -23,6 +23,13 @@ const Financeiro = () => {
     },
     enabled: !!businessId,
   });
+
+  // Auto-authenticate when no finance access is configured
+  useEffect(() => {
+    if (!financeAccessLoading && !financeAccess && !authenticated) {
+      setAuthenticated(true);
+    }
+  }, [financeAccess, financeAccessLoading, authenticated]);
 
   const { data: executions = [] } = useQuery({
     queryKey: ["service-executions-all", businessId],
@@ -57,7 +64,6 @@ const Financeiro = () => {
       setLoginError("Acesso financeiro não configurado. Configure em Configurações.");
       return;
     }
-    // Simple comparison (in production, use bcrypt via edge function)
     if (loginName === financeAccess.name && loginPassword === financeAccess.password_hash) {
       setAuthenticated(true);
       setLoginError("");
@@ -66,7 +72,7 @@ const Financeiro = () => {
     }
   };
 
-  // If finance access exists but not authenticated
+  // If finance access exists but not authenticated — show login
   if (financeAccess && !authenticated) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -95,14 +101,14 @@ const Financeiro = () => {
     );
   }
 
-  // If no finance access configured, show data directly
-  // Use useEffect to avoid setState during render
-  const shouldAutoAuth = !financeAccess && !authenticated;
-  
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useState(() => {
-    if (shouldAutoAuth) setAuthenticated(true);
-  });
+  // Still loading or not yet auto-authenticated
+  if (!authenticated) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   const totalServicos = executions.reduce((s: number, e: any) => s + e.service_price_cents, 0);
   const totalProdutos = productSales.reduce((s: number, m: any) => s + (m.total_cents || 0), 0);
