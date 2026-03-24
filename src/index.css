@@ -123,6 +123,49 @@
     --chart-4: 265 43% 18%;
     --chart-5: 269 38% 63%;
   }
+
+  /* Landing page — warm gold/charcoal premium palette */
+  .landing-theme {
+    --background: 30 8% 4%;
+    --foreground: 40 20% 92%;
+
+    --card: 30 10% 8%;
+    --card-foreground: 40 20% 92%;
+
+    --popover: 30 10% 10%;
+    --popover-foreground: 40 20% 92%;
+
+    --primary: 40 72% 48%;
+    --primary-foreground: 30 8% 4%;
+
+    --secondary: 35 25% 15%;
+    --secondary-foreground: 40 20% 92%;
+
+    --muted: 35 18% 18%;
+    --muted-foreground: 38 25% 55%;
+
+    --accent: 40 72% 48%;
+    --accent-foreground: 30 8% 4%;
+
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 85% 97%;
+
+    --border: 35 20% 14%;
+    --input: 30 10% 8%;
+    --ring: 40 72% 48%;
+
+    --emerald: 40 72% 48%;
+    --emerald-hover: 40 72% 40%;
+    --emerald-active: 40 72% 34%;
+    --emerald-foreground: 30 8% 4%;
+    --surface: 30 10% 8%;
+    --surface-hover: 30 10% 11%;
+    --chart-1: 40 72% 48%;
+    --chart-2: 40 72% 40%;
+    --chart-3: 40 72% 34%;
+    --chart-4: 35 25% 15%;
+    --chart-5: 38 25% 55%;
+  }
 }
 
 @layer base {
