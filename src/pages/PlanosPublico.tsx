@@ -67,6 +67,16 @@ const PlanosPublico = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // Apply landing theme on public plans page too
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove("salon-theme");
+    root.classList.add("landing-theme");
+    return () => {
+      root.classList.remove("landing-theme");
+    };
+  }, []);
+
   const handlePlanClick = (planId: string) => {
     localStorage.setItem("selectedPlan", planId);
     navigate("/login");
