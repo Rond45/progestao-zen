@@ -28,6 +28,35 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState("");
+  const [forgotPassword, setForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+
+  const translateError = (msg: string): string => {
+    if (msg.includes("Invalid login credentials")) return "E-mail ou senha incorretos.";
+    if (msg.includes("Email not confirmed")) return "Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.";
+    if (msg.includes("User already registered")) return "Este e-mail já está cadastrado. Tente fazer login.";
+    if (msg.includes("at least 6 characters")) return "A senha deve ter pelo menos 6 caracteres.";
+    if (msg.includes("Too many requests") || msg.includes("rate limit")) return "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
+    return "Ocorreu um erro. Tente novamente.";
+  };
+
+  const handleForgotPassword = async () => {
+    if (!forgotEmail) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: window.location.origin + '/login',
+      });
+      if (error) throw error;
+      toast({ title: "Link enviado", description: "Enviamos um link de recuperação para o seu e-mail." });
+      setForgotPassword(false);
+      setForgotEmail("");
+    } catch (error: any) {
+      toast({ title: "Erro", description: translateError(error.message), variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (vertical) storeVertical(vertical);
@@ -77,7 +106,7 @@ const Login = () => {
     } catch (error: any) {
       toast({
         title: "Erro",
-        description: error.message || "Ocorreu um erro. Tente novamente.",
+        description: translateError(error.message || ""),
         variant: "destructive",
       });
     } finally {
@@ -153,6 +182,34 @@ const Login = () => {
               </button>
             </div>
           </div>
+
+          {!isSignUp && !forgotPassword && (
+            <button type="button" onClick={() => setForgotPassword(true)} className="text-xs text-primary hover:underline">
+              Esqueci minha senha
+            </button>
+          )}
+
+          {forgotPassword && (
+            <div className="space-y-2 p-3 rounded-md border border-border bg-card/50">
+              <Label className="text-sm text-muted-foreground">Digite seu e-mail para recuperar a senha</Label>
+              <Input
+                type="email"
+                placeholder="seu@email.com"
+                value={forgotEmail}
+                onChange={(e) => setForgotEmail(e.target.value)}
+                className="bg-card border-border text-foreground placeholder:text-muted-foreground/50"
+              />
+              <div className="flex gap-2">
+                <Button type="button" variant="emerald" size="sm" className="flex-1" disabled={loading || !forgotEmail} onClick={handleForgotPassword}>
+                  {loading ? "Enviando..." : "Enviar link"}
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => { setForgotPassword(false); setForgotEmail(""); }}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
+
           <Button type="submit" variant="emerald" className="w-full" size="lg" disabled={loading}>
             {loading ? "Aguarde..." : isSignUp ? "Criar conta" : "Entrar"}
           </Button>
