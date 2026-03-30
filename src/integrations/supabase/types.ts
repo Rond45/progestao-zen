@@ -675,29 +675,56 @@ export type Database = {
         Row: {
           business_id: string
           connected_at: string | null
+          evolution_api_key: string | null
+          evolution_api_url: string | null
+          instance_name: string | null
+          openai_api_key: string | null
+          openai_model: string | null
           phone_number: string | null
           phone_number_id: string | null
+          qr_code: string | null
+          services_info: string | null
           status: string
+          system_prompt: string | null
           updated_at: string
           waba_id: string | null
+          working_hours: string | null
         }
         Insert: {
           business_id: string
           connected_at?: string | null
+          evolution_api_key?: string | null
+          evolution_api_url?: string | null
+          instance_name?: string | null
+          openai_api_key?: string | null
+          openai_model?: string | null
           phone_number?: string | null
           phone_number_id?: string | null
+          qr_code?: string | null
+          services_info?: string | null
           status?: string
+          system_prompt?: string | null
           updated_at?: string
           waba_id?: string | null
+          working_hours?: string | null
         }
         Update: {
           business_id?: string
           connected_at?: string | null
+          evolution_api_key?: string | null
+          evolution_api_url?: string | null
+          instance_name?: string | null
+          openai_api_key?: string | null
+          openai_model?: string | null
           phone_number?: string | null
           phone_number_id?: string | null
+          qr_code?: string | null
+          services_info?: string | null
           status?: string
+          system_prompt?: string | null
           updated_at?: string
           waba_id?: string | null
+          working_hours?: string | null
         }
         Relationships: [
           {
