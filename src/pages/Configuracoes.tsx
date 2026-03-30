@@ -147,7 +147,13 @@ const Configuracoes = () => {
         <p className="text-sm text-muted-foreground mt-1">Ajustes gerais do seu negócio</p>
       </div>
 
-      <div className="space-y-4 max-w-2xl">
+      <Tabs defaultValue="geral" className="max-w-2xl">
+        <TabsList className="mb-4">
+          <TabsTrigger value="geral" className="gap-1.5"><Settings className="h-3.5 w-3.5" /> Geral</TabsTrigger>
+          <TabsTrigger value="whatsapp" className="gap-1.5"><MessageSquare className="h-3.5 w-3.5" /> WhatsApp IA</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="geral" className="space-y-4">
         {/* Business info */}
         <div className="rounded-lg border border-border bg-card p-5">
           <div className="flex items-center gap-2 mb-4">
