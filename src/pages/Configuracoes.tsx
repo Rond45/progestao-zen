@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Settings, Store, Clock, Shield, Users, Lock, Plus } from "lucide-react";
+import { Settings, Store, Clock, Shield, Users, Lock, Plus, MessageSquare } from "lucide-react";
 import { useBusiness } from "@/hooks/useBusiness";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import WhatsAppConfig from "@/components/configuracoes/WhatsAppConfig";
 
 const policyOptions = [
   { value: "none", label: "Sem sinal" },
@@ -145,7 +147,13 @@ const Configuracoes = () => {
         <p className="text-sm text-muted-foreground mt-1">Ajustes gerais do seu negócio</p>
       </div>
 
-      <div className="space-y-4 max-w-2xl">
+      <Tabs defaultValue="geral" className="max-w-2xl">
+        <TabsList className="mb-4">
+          <TabsTrigger value="geral" className="gap-1.5"><Settings className="h-3.5 w-3.5" /> Geral</TabsTrigger>
+          <TabsTrigger value="whatsapp" className="gap-1.5"><MessageSquare className="h-3.5 w-3.5" /> WhatsApp IA</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="geral" className="space-y-4">
         {/* Business info */}
         <div className="rounded-lg border border-border bg-card p-5">
           <div className="flex items-center gap-2 mb-4">
@@ -277,7 +285,12 @@ const Configuracoes = () => {
             </div>
           )}
         </div>
-      </div>
+        </TabsContent>
+
+        <TabsContent value="whatsapp">
+          <WhatsAppConfig businessId={businessId} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
