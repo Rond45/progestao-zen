@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Settings, Store, Clock, Shield, Users, Lock, Plus } from "lucide-react";
+import { Settings, Store, Clock, Shield, Users, Lock, Plus, MessageSquare } from "lucide-react";
 import { useBusiness } from "@/hooks/useBusiness";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import WhatsAppConfig from "@/components/configuracoes/WhatsAppConfig";
 
 const policyOptions = [
   { value: "none", label: "Sem sinal" },
