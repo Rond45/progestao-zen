@@ -285,7 +285,12 @@ const Configuracoes = () => {
             </div>
           )}
         </div>
-      </div>
+        </TabsContent>
+
+        <TabsContent value="whatsapp">
+          <WhatsAppConfig businessId={businessId} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
