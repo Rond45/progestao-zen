@@ -86,6 +86,8 @@ const App = () => {
                   <Route path="planos" element={<Planos />} />
                 </Route>
 
+                <Route path="/admin" element={<AdminLogin />} />
+                <Route path="/admin/dashboard" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
