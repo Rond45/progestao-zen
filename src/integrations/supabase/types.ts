@@ -322,6 +322,27 @@ export type Database = {
           },
         ]
       }
+      platform_config: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value?: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       product_movements: {
         Row: {
           appointment_id: string | null
@@ -673,6 +694,7 @@ export type Database = {
       }
       whatsapp_connections: {
         Row: {
+          ai_name: string | null
           business_id: string
           connected_at: string | null
           evolution_api_key: string | null
@@ -691,6 +713,7 @@ export type Database = {
           working_hours: string | null
         }
         Insert: {
+          ai_name?: string | null
           business_id: string
           connected_at?: string | null
           evolution_api_key?: string | null
@@ -709,6 +732,7 @@ export type Database = {
           working_hours?: string | null
         }
         Update: {
+          ai_name?: string | null
           business_id?: string
           connected_at?: string | null
           evolution_api_key?: string | null

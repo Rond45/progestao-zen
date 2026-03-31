@@ -29,6 +29,9 @@ import Planos from "./pages/Planos";
 import PlanosPublico from "./pages/PlanosPublico";
 import ClienteDetalhe from "./pages/ClienteDetalhe";
 import { useVerticalTheme } from "@/hooks/useVerticalTheme";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +86,8 @@ const App = () => {
                   <Route path="planos" element={<Planos />} />
                 </Route>
 
+                <Route path="/admin" element={<AdminLogin />} />
+                <Route path="/admin/dashboard" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
