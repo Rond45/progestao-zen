@@ -2,12 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Building2, Wifi, CalendarPlus, PieChart } from "lucide-react";
 
-const adminCall = async (action: string, params: Record<string, any> = {}) => {
+export const adminCall = async (action: string, params: Record<string, any> = {}) => {
+  const session = JSON.parse(sessionStorage.getItem("pgz_admin_session") || "{}");
   const { data, error } = await supabase.functions.invoke("admin-api", {
     body: {
       action,
-      admin_email: "rondineli@progestaozen.com.br",
-      admin_password: "ProAdmin@2025#Zen",
+      admin_email: session.email || "",
+      admin_password: session.password || "",
       ...params,
     },
   });
@@ -57,4 +58,3 @@ const AdminOverview = () => {
 };
 
 export default AdminOverview;
-export { adminCall };
