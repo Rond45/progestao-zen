@@ -6,18 +6,11 @@ const ADMIN_EMAIL = "rondineliprof@gmail.com";
 const ADMIN_PASSWORD = "12345678";
 
 export const adminCall = async (action: string, params: Record<string, any> = {}) => {
-  let session: { email?: string; password?: string } = {};
-  try {
-    session = JSON.parse(sessionStorage.getItem("pgz_admin_session") || "{}");
-  } catch {
-    sessionStorage.removeItem("pgz_admin_session");
-  }
-
   const { data, error } = await supabase.functions.invoke("admin-api", {
     body: {
       action,
-      admin_email: session.email || ADMIN_EMAIL,
-      admin_password: session.password || ADMIN_PASSWORD,
+      admin_email: ADMIN_EMAIL,
+      admin_password: ADMIN_PASSWORD,
       ...params,
     },
   });

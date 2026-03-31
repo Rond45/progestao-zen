@@ -20,7 +20,7 @@ const AdminLogin = () => {
     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
       sessionStorage.setItem(
         "pgz_admin_session",
-        JSON.stringify({ admin: true, ts: Date.now(), email, password })
+        JSON.stringify({ admin: true, ts: Date.now() })
       );
       navigate("/admin/dashboard");
     } else {
