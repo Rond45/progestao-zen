@@ -6,8 +6,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const ADMIN_EMAIL = "rondineli@progestaozen.com.br";
-const ADMIN_PASSWORD = "ProAdmin@2025#Zen";
+const ADMIN_EMAIL = "rondineliprof@gmail.com";
+const ADMIN_PASSWORD = "12345678";
 
 const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), {
