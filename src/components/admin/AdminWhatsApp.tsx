@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye, EyeOff, Loader2, QrCode, Wifi, WifiOff, Plus } from "lucide-react";
+import { Eye, EyeOff, Loader2, QrCode, Wifi, WifiOff, Plus, Copy, Share2, Mail, MessageCircle, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { adminCall } from "./AdminOverview";
 
@@ -60,16 +60,17 @@ const AdminWhatsApp = () => {
     queryFn: () => adminCall("get-instances"),
   });
 
-  const [qrModal, setQrModal] = useState<{ open: boolean; qr: string; name: string }>({
-    open: false, qr: "", name: "",
+  const [qrModal, setQrModal] = useState<{ open: boolean; qr: string; name: string; businessId: string }>({
+    open: false, qr: "", name: "", businessId: "",
   });
+  const qrImgRef = useRef<HTMLImageElement>(null);
 
   const createInstance = useMutation({
     mutationFn: (businessId: string) => adminCall("create-instance", { business_id: businessId }),
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["admin-whatsapp-instances"] });
       if (data?.qr_code) {
-        setQrModal({ open: true, qr: data.qr_code, name: data.instance_name || "" });
+        setQrModal({ open: true, qr: data.qr_code, name: data.instance_name || "", businessId: "" });
         toast({ title: "Instância criada! Escaneie o QR Code." });
       } else {
         toast({ title: "Instância criada com sucesso!" });
@@ -77,6 +78,52 @@ const AdminWhatsApp = () => {
     },
     onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
+
+  const reconnectInstance = useMutation({
+    mutationFn: (businessId: string) => adminCall("create-instance", { business_id: businessId }),
+    onSuccess: (data, businessId) => {
+      qc.invalidateQueries({ queryKey: ["admin-whatsapp-instances"] });
+      if (data?.qr_code) {
+        setQrModal({ open: true, qr: data.qr_code, name: data.instance_name || "", businessId });
+        toast({ title: "QR Code gerado com sucesso!" });
+      } else {
+        toast({ title: "Instância atualizada, mas QR Code não disponível. Tente novamente." });
+      }
+    },
+    onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+  });
+
+  const copyQrImage = async () => {
+    try {
+      const imgSrc = qrModal.qr.startsWith("data:") ? qrModal.qr : `data:image/png;base64,${qrModal.qr}`;
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = imgSrc;
+      await new Promise((resolve) => { img.onload = resolve; });
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0);
+      const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      toast({ title: "QR Code copiado!" });
+    } catch {
+      toast({ title: "Erro ao copiar", description: "Seu navegador pode não suportar esta função.", variant: "destructive" });
+    }
+  };
+
+  const shareQr = async (method: "whatsapp" | "email") => {
+    const text = `QR Code para conectar o WhatsApp da instância "${qrModal.name}". Abra o WhatsApp no celular, vá em Dispositivos conectados e escaneie o QR Code.`;
+    if (method === "whatsapp") {
+      window.open(`https://wa.me/?text=${encodeURIComponent(text + "\n\n(O QR Code foi copiado para a área de transferência — cole na conversa)")}`, "_blank");
+      copyQrImage();
+    } else {
+      const subject = encodeURIComponent(`QR Code WhatsApp — ${qrModal.name}`);
+      const body = encodeURIComponent(text);
+      window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
+    }
+  };
 
   const disconnectInstance = useMutation({
     mutationFn: (businessId: string) => adminCall("disconnect-instance", { business_id: businessId }),
@@ -238,29 +285,28 @@ const AdminWhatsApp = () => {
                           </Button>
                         ) : (
                           <>
-                            {inst.qr_code && (
+                            {inst.qr_code ? (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 className="h-7 text-xs border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-                                onClick={() => setQrModal({ open: true, qr: inst.qr_code, name: inst.business_name })}
+                                onClick={() => setQrModal({ open: true, qr: inst.qr_code, name: inst.business_name, businessId: inst.business_id })}
                               >
                                 <QrCode className="h-3 w-3 mr-1" />
                                 Ver QR Code
                               </Button>
-                            )}
-                            {!inst.qr_code && inst.status !== "connected" && (
+                            ) : inst.status !== "connected" ? (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 className="h-7 text-xs border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-                                onClick={() => createInstance.mutate(inst.business_id)}
-                                disabled={createInstance.isPending}
+                                onClick={() => reconnectInstance.mutate(inst.business_id)}
+                                disabled={reconnectInstance.isPending}
                               >
-                                {createInstance.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <QrCode className="h-3 w-3 mr-1" />}
-                                Reconectar
+                                {reconnectInstance.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3 mr-1" />}
+                                Ver QR Code
                               </Button>
-                            )}
+                            ) : null}
                             {inst.status === "connected" && (
                               <Button
                                 size="sm"
@@ -292,24 +338,56 @@ const AdminWhatsApp = () => {
       </div>
 
       {/* QR Code Modal */}
-      <Dialog open={qrModal.open} onOpenChange={(o) => setQrModal({ ...qrModal, open: o })}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-sm">
+      <Dialog open={qrModal.open} onOpenChange={(o) => !o && setQrModal({ ...qrModal, open: false })}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-zinc-100">QR Code — {qrModal.name}</DialogTitle>
           </DialogHeader>
-          <div className="flex flex-col items-center gap-3 py-4">
+          <div className="flex flex-col items-center gap-4 py-4">
             {qrModal.qr ? (
-              <img
-                src={qrModal.qr.startsWith("data:") ? qrModal.qr : `data:image/png;base64,${qrModal.qr}`}
-                alt="QR Code"
-                className="w-64 h-64 rounded-lg"
-              />
+              <>
+                <img
+                  ref={qrImgRef}
+                  src={qrModal.qr.startsWith("data:") ? qrModal.qr : `data:image/png;base64,${qrModal.qr}`}
+                  alt="QR Code"
+                  className="w-64 h-64 rounded-lg bg-white p-2"
+                />
+                <p className="text-xs text-zinc-400 text-center max-w-[280px]">
+                  Peça ao cliente para abrir o WhatsApp, ir em <strong className="text-zinc-200">Dispositivos conectados</strong> e escanear este QR Code.
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 text-xs border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                    onClick={copyQrImage}
+                  >
+                    <Copy className="h-3 w-3 mr-1" />
+                    Copiar imagem
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 text-xs border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                    onClick={() => shareQr("whatsapp")}
+                  >
+                    <MessageCircle className="h-3 w-3 mr-1" />
+                    Enviar via WhatsApp
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 text-xs border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                    onClick={() => shareQr("email")}
+                  >
+                    <Mail className="h-3 w-3 mr-1" />
+                    Enviar por e-mail
+                  </Button>
+                </div>
+              </>
             ) : (
               <p className="text-zinc-400 text-sm">QR Code não disponível.</p>
             )}
-            <p className="text-xs text-zinc-500 text-center">
-              Peça ao cliente para abrir o WhatsApp, ir em Dispositivos conectados e escanear este QR Code.
-            </p>
           </div>
         </DialogContent>
       </Dialog>
