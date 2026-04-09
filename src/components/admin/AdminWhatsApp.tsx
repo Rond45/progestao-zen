@@ -202,15 +202,24 @@ const AdminWhatsApp = () => {
               <tbody>
                 {(instances ?? []).map((inst: any) => (
                   <tr key={inst.business_id} className="border-t border-zinc-800 text-zinc-300">
-                    <td className="px-3 py-2">{inst.business_name}</td>
+                    <td className="px-3 py-2">
+                      <div>
+                        <span>{inst.business_name}</span>
+                        <span className="text-[10px] text-zinc-500 ml-2">{inst.vertical}</span>
+                      </div>
+                    </td>
                     <td className="px-3 py-2">{inst.phone_number || "—"}</td>
                     <td className="px-3 py-2">{inst.ai_name || "—"}</td>
                     <td className="px-3 py-2">
                       <span className={`inline-flex items-center gap-1 text-xs ${
-                        inst.status === "connected" ? "text-emerald-400" : "text-zinc-500"
+                        inst.status === "connected" ? "text-emerald-400" :
+                        inst.status === "pending" ? "text-yellow-400" :
+                        inst.has_connection ? "text-zinc-500" : "text-zinc-600"
                       }`}>
                         {inst.status === "connected" ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-                        {inst.status === "connected" ? "Conectado" : inst.status || "Pendente"}
+                        {inst.status === "connected" ? "Conectado" :
+                         inst.status === "pending" ? "Pendente" :
+                         inst.has_connection ? "Desconectado" : "Não configurado"}
                       </span>
                     </td>
                     <td className="px-3 py-2 text-xs text-zinc-500">{inst.instance_name || "—"}</td>
@@ -225,7 +234,7 @@ const AdminWhatsApp = () => {
                             disabled={createInstance.isPending}
                           >
                             {createInstance.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3 mr-1" />}
-                            Criar
+                            Criar instância
                           </Button>
                         ) : (
                           <>
@@ -237,7 +246,7 @@ const AdminWhatsApp = () => {
                                 onClick={() => setQrModal({ open: true, qr: inst.qr_code, name: inst.business_name })}
                               >
                                 <QrCode className="h-3 w-3 mr-1" />
-                                QR
+                                Ver QR Code
                               </Button>
                             )}
                             {inst.status === "connected" && (
@@ -260,7 +269,7 @@ const AdminWhatsApp = () => {
                 {(instances ?? []).length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-4 py-6 text-center text-zinc-500">
-                      Nenhuma instância configurada.
+                      Nenhum negócio cadastrado na plataforma.
                     </td>
                   </tr>
                 )}
