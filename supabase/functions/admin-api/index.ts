@@ -89,15 +89,28 @@ Deno.serve(async (req) => {
       }
 
       case "get-instances": {
+        const { data: businesses } = await supabase
+          .from("businesses")
+          .select("id, name, vertical, created_at")
+          .order("name");
         const { data: connections } = await supabase
           .from("whatsapp_connections")
           .select("business_id, phone_number, ai_name, status, instance_name, qr_code");
-        const { data: businesses } = await supabase.from("businesses").select("id, name");
-        const nameMap = new Map((businesses ?? []).map((b: any) => [b.id, b.name]));
-        const result = (connections ?? []).map((c: any) => ({
-          ...c,
-          business_name: nameMap.get(c.business_id) || "Sem nome",
-        }));
+        const connMap = new Map((connections ?? []).map((c: any) => [c.business_id, c]));
+        const result = (businesses ?? []).map((b: any) => {
+          const conn = connMap.get(b.id);
+          return {
+            business_id: b.id,
+            business_name: b.name,
+            vertical: b.vertical,
+            phone_number: conn?.phone_number || null,
+            ai_name: conn?.ai_name || null,
+            status: conn?.status || null,
+            instance_name: conn?.instance_name || null,
+            qr_code: conn?.qr_code || null,
+            has_connection: !!conn,
+          };
+        });
         return json(result);
       }
 
