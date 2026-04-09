@@ -249,6 +249,18 @@ const AdminWhatsApp = () => {
                                 Ver QR Code
                               </Button>
                             )}
+                            {!inst.qr_code && inst.status !== "connected" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                                onClick={() => createInstance.mutate(inst.business_id)}
+                                disabled={createInstance.isPending}
+                              >
+                                {createInstance.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <QrCode className="h-3 w-3 mr-1" />}
+                                Reconectar
+                              </Button>
+                            )}
                             {inst.status === "connected" && (
                               <Button
                                 size="sm"
