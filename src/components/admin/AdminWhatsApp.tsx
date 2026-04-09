@@ -71,6 +71,28 @@ const AdminWhatsApp = () => {
       qc.invalidateQueries({ queryKey: ["admin-whatsapp-instances"] });
       if (data?.qr_code) {
         setQrModal({ open: true, qr: data.qr_code, name: data.instance_name || "", businessId: "" });
+        toast({ title: "Instância criada! Escaneie o QR Code." });
+      } else {
+        toast({ title: "Instância criada com sucesso!" });
+      }
+    },
+    onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+  });
+
+  const reconnectInstance = useMutation({
+    mutationFn: (businessId: string) => adminCall("create-instance", { business_id: businessId }),
+    onSuccess: (data, businessId) => {
+      qc.invalidateQueries({ queryKey: ["admin-whatsapp-instances"] });
+      if (data?.qr_code) {
+        setQrModal({ open: true, qr: data.qr_code, name: data.instance_name || "", businessId });
+        toast({ title: "QR Code gerado com sucesso!" });
+      } else {
+        toast({ title: "Instância atualizada, mas QR Code não disponível. Tente novamente." });
+      }
+    },
+    onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
+  });
+
   const copyQrImage = async () => {
     try {
       const imgSrc = qrModal.qr.startsWith("data:") ? qrModal.qr : `data:image/png;base64,${qrModal.qr}`;
@@ -92,9 +114,7 @@ const AdminWhatsApp = () => {
   };
 
   const shareQr = async (method: "whatsapp" | "email") => {
-    const imgSrc = qrModal.qr.startsWith("data:") ? qrModal.qr : `data:image/png;base64,${qrModal.qr}`;
     const text = `QR Code para conectar o WhatsApp da instância "${qrModal.name}". Abra o WhatsApp no celular, vá em Dispositivos conectados e escaneie o QR Code.`;
-    
     if (method === "whatsapp") {
       window.open(`https://wa.me/?text=${encodeURIComponent(text + "\n\n(O QR Code foi copiado para a área de transferência — cole na conversa)")}`, "_blank");
       copyQrImage();
@@ -104,28 +124,6 @@ const AdminWhatsApp = () => {
       window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
     }
   };
-
-  const reconnectInstance = useMutation({
-    mutationFn: (businessId: string) => adminCall("create-instance", { business_id: businessId }),
-    onSuccess: (data, businessId) => {
-      qc.invalidateQueries({ queryKey: ["admin-whatsapp-instances"] });
-      if (data?.qr_code) {
-        setQrModal({ open: true, qr: data.qr_code, name: data.instance_name || "", businessId });
-        toast({ title: "QR Code gerado com sucesso!" });
-      } else {
-        toast({ title: "Instância atualizada, mas QR Code não disponível. Tente novamente." });
-      }
-    },
-    onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
-  });
-
-        toast({ title: "Instância criada! Escaneie o QR Code." });
-      } else {
-        toast({ title: "Instância criada com sucesso!" });
-      }
-    },
-    onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
-  });
 
   const disconnectInstance = useMutation({
     mutationFn: (businessId: string) => adminCall("disconnect-instance", { business_id: businessId }),
