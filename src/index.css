@@ -208,13 +208,19 @@
     @apply transition-all duration-200;
   }
   input:focus, textarea:focus, select:focus {
-    box-shadow: 0 0 0 2px hsla(163, 100%, 39%, 0.15);
+    box-shadow: 0 0 0 3px hsla(163, 100%, 39%, 0.25);
   }
 
   .salon-theme input:focus,
   .salon-theme textarea:focus,
   .salon-theme select:focus {
-    box-shadow: 0 0 0 2px hsla(271, 100%, 60%, 0.15);
+    box-shadow: 0 0 0 3px hsla(271, 100%, 60%, 0.25);
+  }
+
+  /* Filled inputs get subtle background change */
+  input:not(:placeholder-shown),
+  textarea:not(:placeholder-shown) {
+    background-color: hsl(var(--card));
   }
 }
 

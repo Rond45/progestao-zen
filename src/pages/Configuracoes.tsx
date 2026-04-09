@@ -7,11 +7,13 @@ import { useBusiness } from "@/hooks/useBusiness";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WhatsAppConfig from "@/components/configuracoes/WhatsAppConfig";
+import WorkingHoursSelector, {
+  type WeekSchedule,
+  getDefaultSchedule,
+  scheduleToText,
+} from "@/components/configuracoes/WorkingHoursSelector";
 
 const policyOptions = [
   { value: "none", label: "Sem sinal" },
@@ -27,23 +29,40 @@ const Configuracoes = () => {
 
   // Business form
   const [bizForm, setBizForm] = useState({ name: "", phone: "", address: "" });
-  const [timeForm, setTimeForm] = useState({ opening: "09:00", closing: "19:00" });
+  const [schedule, setSchedule] = useState<WeekSchedule>(getDefaultSchedule());
 
   useEffect(() => {
     if (business) {
       setBizForm({ name: business.name || "", phone: business.phone || "", address: business.address || "" });
-      setTimeForm({
-        opening: business.opening_time?.slice(0, 5) || "09:00",
-        closing: business.closing_time?.slice(0, 5) || "19:00",
-      });
+      // Build schedule from opening/closing time
+      const open = business.opening_time?.slice(0, 5) || "09:00";
+      const close = business.closing_time?.slice(0, 5) || "19:00";
+      const newSchedule = getDefaultSchedule();
+      for (const key of Object.keys(newSchedule)) {
+        if (key === "dom") {
+          newSchedule[key] = { enabled: false, open, close };
+        } else {
+          newSchedule[key] = { enabled: true, open, close };
+        }
+      }
+      setSchedule(newSchedule);
     }
   }, [business]);
 
   const saveBiz = useMutation({
     mutationFn: async () => {
+      // Find earliest open and latest close from schedule
+      const enabledDays = Object.values(schedule).filter((d) => d.enabled);
+      const opening = enabledDays.length > 0
+        ? enabledDays.reduce((min, d) => (d.open < min ? d.open : min), "23:30")
+        : "09:00";
+      const closing = enabledDays.length > 0
+        ? enabledDays.reduce((max, d) => (d.close > max ? d.close : max), "06:00")
+        : "19:00";
+
       const { error } = await supabase.from("businesses").update({
         name: bizForm.name, phone: bizForm.phone, address: bizForm.address,
-        opening_time: timeForm.opening, closing_time: timeForm.closing,
+        opening_time: opening, closing_time: closing,
       }).eq("id", businessId!);
       if (error) throw error;
     },
@@ -109,7 +128,7 @@ const Configuracoes = () => {
     mutationFn: async () => {
       if (finForm.password && finForm.password !== finForm.confirm) throw new Error("Senhas não conferem");
       const payload: any = { name: finForm.name };
-      if (finForm.password) payload.password_hash = finForm.password; // In prod use bcrypt
+      if (finForm.password) payload.password_hash = finForm.password;
       payload.updated_at = new Date().toISOString();
 
       if (financeAccess) {
@@ -129,7 +148,7 @@ const Configuracoes = () => {
     onError: (e: any) => toast({ title: "Erro", description: e.message, variant: "destructive" }),
   });
 
-  // Team members (using profiles table)
+  // Team members
   const { data: teamMembers = [] } = useQuery({
     queryKey: ["team-members", businessId],
     queryFn: async () => {
@@ -162,16 +181,16 @@ const Configuracoes = () => {
           </div>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Nome</Label>
-              <Input value={bizForm.name} onChange={(e) => setBizForm({ ...bizForm, name: e.target.value })} className="bg-background border-border text-foreground" />
+              <Label className="text-sm font-medium text-foreground">Nome</Label>
+              <Input value={bizForm.name} onChange={(e) => setBizForm({ ...bizForm, name: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Telefone</Label>
-              <Input value={bizForm.phone} onChange={(e) => setBizForm({ ...bizForm, phone: e.target.value })} className="bg-background border-border text-foreground" />
+              <Label className="text-sm font-medium text-foreground">Telefone</Label>
+              <Input value={bizForm.phone} onChange={(e) => setBizForm({ ...bizForm, phone: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Endereço</Label>
-              <Input value={bizForm.address} onChange={(e) => setBizForm({ ...bizForm, address: e.target.value })} className="bg-background border-border text-foreground" />
+              <Label className="text-sm font-medium text-foreground">Endereço</Label>
+              <Input value={bizForm.address} onChange={(e) => setBizForm({ ...bizForm, address: e.target.value })} />
             </div>
           </div>
         </div>
@@ -182,16 +201,7 @@ const Configuracoes = () => {
             <Clock className="h-4 w-4 text-primary" />
             <h3 className="text-base font-semibold text-foreground">Horário de funcionamento</h3>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Abertura</Label>
-              <Input type="time" value={timeForm.opening} onChange={(e) => setTimeForm({ ...timeForm, opening: e.target.value })} className="bg-background border-border text-foreground" />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Fechamento</Label>
-              <Input type="time" value={timeForm.closing} onChange={(e) => setTimeForm({ ...timeForm, closing: e.target.value })} className="bg-background border-border text-foreground" />
-            </div>
-          </div>
+          <WorkingHoursSelector schedule={schedule} onChange={setSchedule} />
           <Button variant="emerald" size="sm" className="mt-4" onClick={() => saveBiz.mutate()} disabled={saveBiz.isPending}>
             {saveBiz.isPending ? "Salvando..." : "Salvar alterações"}
           </Button>
@@ -234,16 +244,16 @@ const Configuracoes = () => {
           </div>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Nome do responsavel</Label>
-              <Input value={finForm.name} onChange={(e) => setFinForm({ ...finForm, name: e.target.value })} className="bg-background border-border text-foreground" required />
+              <Label className="text-sm font-medium text-foreground">Nome do responsavel</Label>
+              <Input value={finForm.name} onChange={(e) => setFinForm({ ...finForm, name: e.target.value })} required />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">{financeAccess ? "Nova senha (deixe vazio para manter)" : "Senha"}</Label>
-              <Input type="password" value={finForm.password} onChange={(e) => setFinForm({ ...finForm, password: e.target.value })} className="bg-background border-border text-foreground" />
+              <Label className="text-sm font-medium text-foreground">{financeAccess ? "Nova senha (deixe vazio para manter)" : "Senha"}</Label>
+              <Input type="password" value={finForm.password} onChange={(e) => setFinForm({ ...finForm, password: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm text-muted-foreground">Confirmar senha</Label>
-              <Input type="password" value={finForm.confirm} onChange={(e) => setFinForm({ ...finForm, confirm: e.target.value })} className="bg-background border-border text-foreground" />
+              <Label className="text-sm font-medium text-foreground">Confirmar senha</Label>
+              <Input type="password" value={finForm.confirm} onChange={(e) => setFinForm({ ...finForm, confirm: e.target.value })} />
             </div>
             <Button variant="emerald" size="sm" onClick={() => saveFinAccess.mutate()} disabled={saveFinAccess.isPending}>
               {saveFinAccess.isPending ? "Salvando..." : "Salvar acesso"}
