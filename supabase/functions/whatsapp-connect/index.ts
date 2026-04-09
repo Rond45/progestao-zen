@@ -37,7 +37,10 @@ Deno.serve(async (req) => {
       console.log("Instance create response (may already exist):", e);
     }
 
-    // 2. Get QR Code
+    // 2. Wait for instance to initialize
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // 3. Get QR Code
     const qrRes = await fetch(`${baseUrl}/instance/connect/${instance_name}`, {
       method: "GET",
       headers: { apikey: evolution_api_key },
