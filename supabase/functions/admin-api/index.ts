@@ -140,6 +140,9 @@ Deno.serve(async (req) => {
           console.error("Evolution create error:", errText);
         }
 
+        // Wait 2 seconds for instance to initialize
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
         // Get QR code
         const qrRes = await fetch(`${cfg.evolution_api_url}/instance/connect/${instance_name}`, {
           headers: { apikey: cfg.evolution_api_key },
