@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye, EyeOff, Loader2, QrCode, Wifi, WifiOff, Plus, Copy, Share2, Mail, MessageCircle, RefreshCw } from "lucide-react";
+import { Eye, EyeOff, Loader2, QrCode, Wifi, WifiOff, Plus, Copy, Mail, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { adminCall } from "./AdminOverview";
 
