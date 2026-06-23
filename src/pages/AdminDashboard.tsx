@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { BarChart3, Users, MessageSquare, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminOverview from "@/components/admin/AdminOverview";
@@ -18,8 +19,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    sessionStorage.removeItem("pgz_admin_session");
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     navigate("/admin");
   };
 
