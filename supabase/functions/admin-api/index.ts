@@ -6,9 +6,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const ADMIN_EMAIL = "rondineliprof@gmail.com";
-const ADMIN_PASSWORD = "12345678";
-
 const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), {
     status,
@@ -29,17 +26,26 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const body = await req.json();
-    const { action, admin_email, admin_password, ...params } = body;
-
-    if (admin_email !== ADMIN_EMAIL || admin_password !== ADMIN_PASSWORD) {
-      return json({ error: "Unauthorized" }, 401);
-    }
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    if (!token) return json({ error: "Unauthorized" }, 401);
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData.user) return json({ error: "Unauthorized" }, 401);
+
+    const { data: isAdmin, error: roleErr } = await supabase.rpc("has_role", {
+      _user_id: userData.user.id,
+      _role: "admin",
+    });
+    if (roleErr || isAdmin !== true) return json({ error: "Forbidden" }, 403);
+
+    const body = await req.json();
+    const { action, ...params } = body;
 
     switch (action) {
       case "get-overview": {
