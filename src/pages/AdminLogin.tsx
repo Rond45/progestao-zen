@@ -4,27 +4,38 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock } from "lucide-react";
-
-const ADMIN_EMAIL = "rondineliprof@gmail.com";
-const ADMIN_PASSWORD = "12345678";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      sessionStorage.setItem(
-        "pgz_admin_session",
-        JSON.stringify({ admin: true, ts: Date.now() })
-      );
+    setLoading(true);
+    try {
+      const { data: authData, error: authError } =
+        await supabase.auth.signInWithPassword({ email, password });
+      if (authError || !authData.user) {
+        throw new Error("Credenciais inválidas.");
+      }
+      const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", {
+        _user_id: authData.user.id,
+        _role: "admin",
+      });
+      if (roleError || isAdmin !== true) {
+        await supabase.auth.signOut();
+        throw new Error("Esta conta não possui acesso administrativo.");
+      }
       navigate("/admin/dashboard");
-    } else {
-      setError("Credenciais inválidas.");
+    } catch (err: any) {
+      setError(err.message || "Erro ao autenticar.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,8 +71,8 @@ const AdminLogin = () => {
             />
           </div>
           {error && <p className="text-red-400 text-sm">{error}</p>}
-          <Button type="submit" className="w-full bg-zinc-100 text-zinc-900 hover:bg-zinc-200">
-            Entrar
+          <Button type="submit" disabled={loading} className="w-full bg-zinc-100 text-zinc-900 hover:bg-zinc-200">
+            {loading ? "Validando..." : "Entrar"}
           </Button>
         </form>
       </div>
