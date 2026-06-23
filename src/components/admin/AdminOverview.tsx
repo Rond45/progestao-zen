@@ -2,17 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Building2, Wifi, CalendarPlus, PieChart } from "lucide-react";
 
-const ADMIN_EMAIL = "rondineliprof@gmail.com";
-const ADMIN_PASSWORD = "12345678";
-
 export const adminCall = async (action: string, params: Record<string, any> = {}) => {
   const { data, error } = await supabase.functions.invoke("admin-api", {
-    body: {
-      action,
-      admin_email: ADMIN_EMAIL,
-      admin_password: ADMIN_PASSWORD,
-      ...params,
-    },
+    body: { action, ...params },
   });
   if (error) throw error;
   if (data?.error) throw new Error(data.error);

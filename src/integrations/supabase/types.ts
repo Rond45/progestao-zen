@@ -54,6 +54,8 @@ export type Database = {
       }
       appointments: {
         Row: {
+          antifuro_accepted: boolean
+          antifuro_snapshot: string | null
           business_id: string
           client_id: string
           created_at: string
@@ -67,6 +69,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          antifuro_accepted?: boolean
+          antifuro_snapshot?: string | null
           business_id: string
           client_id: string
           created_at?: string
@@ -80,6 +84,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          antifuro_accepted?: boolean
+          antifuro_snapshot?: string | null
           business_id?: string
           client_id?: string
           created_at?: string
@@ -133,6 +139,7 @@ export type Database = {
           opening_time: string | null
           phone: string | null
           vertical: Database["public"]["Enums"]["business_vertical"]
+          working_hours: Json | null
         }
         Insert: {
           address?: string | null
@@ -143,6 +150,7 @@ export type Database = {
           opening_time?: string | null
           phone?: string | null
           vertical?: Database["public"]["Enums"]["business_vertical"]
+          working_hours?: Json | null
         }
         Update: {
           address?: string | null
@@ -153,6 +161,7 @@ export type Database = {
           opening_time?: string | null
           phone?: string | null
           vertical?: Database["public"]["Enums"]["business_vertical"]
+          working_hours?: Json | null
         }
         Relationships: []
       }
@@ -692,6 +701,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["platform_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["platform_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["platform_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       whatsapp_connections: {
         Row: {
           ai_name: string | null
@@ -766,12 +796,20 @@ export type Database = {
     }
     Functions: {
       get_current_business_id: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["platform_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_business_member: { Args: { _business_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "owner" | "professional" | "reception"
       appointment_status: "scheduled" | "confirmed" | "cancelled" | "done"
       business_vertical: "barbearia" | "salao"
+      platform_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -902,6 +940,7 @@ export const Constants = {
       app_role: ["owner", "professional", "reception"],
       appointment_status: ["scheduled", "confirmed", "cancelled", "done"],
       business_vertical: ["barbearia", "salao"],
+      platform_role: ["admin", "user"],
     },
   },
 } as const

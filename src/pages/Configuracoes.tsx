@@ -34,18 +34,18 @@ const Configuracoes = () => {
   useEffect(() => {
     if (business) {
       setBizForm({ name: business.name || "", phone: business.phone || "", address: business.address || "" });
-      // Build schedule from opening/closing time
-      const open = business.opening_time?.slice(0, 5) || "09:00";
-      const close = business.closing_time?.slice(0, 5) || "19:00";
-      const newSchedule = getDefaultSchedule();
-      for (const key of Object.keys(newSchedule)) {
-        if (key === "dom") {
-          newSchedule[key] = { enabled: false, open, close };
-        } else {
-          newSchedule[key] = { enabled: true, open, close };
+      const wh = (business as any).working_hours as WeekSchedule | null | undefined;
+      if (wh && typeof wh === "object") {
+        setSchedule({ ...getDefaultSchedule(), ...wh });
+      } else {
+        const open = business.opening_time?.slice(0, 5) || "09:00";
+        const close = business.closing_time?.slice(0, 5) || "19:00";
+        const newSchedule = getDefaultSchedule();
+        for (const key of Object.keys(newSchedule)) {
+          newSchedule[key] = { enabled: key !== "dom", open, close };
         }
+        setSchedule(newSchedule);
       }
-      setSchedule(newSchedule);
     }
   }, [business]);
 
@@ -63,7 +63,8 @@ const Configuracoes = () => {
       const { error } = await supabase.from("businesses").update({
         name: bizForm.name, phone: bizForm.phone, address: bizForm.address,
         opening_time: opening, closing_time: closing,
-      }).eq("id", businessId!);
+        working_hours: schedule as any,
+      } as any).eq("id", businessId!);
       if (error) throw error;
     },
     onSuccess: () => {

@@ -13,6 +13,8 @@ import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Shield } from "lucide-react";
 
 const hours = Array.from({ length: 12 }, (_, i) => `${(i + 8).toString().padStart(2, "0")}:00`);
 
@@ -38,6 +40,7 @@ const Agenda = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ client_id: "", professional_id: "", service_id: "", date: "", time: "" });
+  const [acceptedPolicy, setAcceptedPolicy] = useState(false);
 
   // Action dialogs
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
@@ -81,6 +84,30 @@ const Agenda = () => {
     enabled: !!businessId,
   });
 
+  const { data: antifuro } = useQuery({
+    queryKey: ["antifuro", businessId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("antifuro_policies").select("*").eq("business_id", businessId!).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!businessId,
+  });
+
+  const policyDescription = (p: any): string | null => {
+    if (!p || p.policy_type === "none") return null;
+    if (p.policy_type === "confirmation_only")
+      return `O cliente deve confirmar o agendamento em até ${p.confirmation_hours ?? 24}h antes do horário, sob pena de cancelamento automático.`;
+    if (p.policy_type === "fixed_deposit")
+      return `Para confirmar este agendamento é necessário sinal Pix de R$ ${((p.deposit_value_cents ?? 0) / 100).toFixed(2).replace(".", ",")}.`;
+    if (p.policy_type === "percentage_deposit")
+      return `Para confirmar este agendamento é necessário sinal Pix de ${p.deposit_percentage ?? 0}% do valor do serviço.`;
+    return null;
+  };
+  const policyText = policyDescription(antifuro);
+  const policyRequired = !!policyText;
+
   const { data: appointments = [] } = useQuery({
     queryKey: ["appointments", businessId, dayStart],
     queryFn: async () => {
@@ -102,22 +129,26 @@ const Agenda = () => {
     mutationFn: async (values: typeof form) => {
       const service = services.find((s: any) => s.id === values.service_id);
       if (!service) throw new Error("Servico nao encontrado");
+      if (policyRequired && !acceptedPolicy) throw new Error("É necessário aceitar a política antifuro.");
       const startsAt = new Date(`${values.date}T${values.time}`);
       const endsAt = addMinutes(startsAt, service.duration_minutes);
       const { error } = await supabase.from("appointments").insert({
         business_id: businessId!, client_id: values.client_id, professional_id: values.professional_id,
         service_id: values.service_id, starts_at: startsAt.toISOString(), ends_at: endsAt.toISOString(),
-      });
+        antifuro_accepted: policyRequired ? acceptedPolicy : false,
+        antifuro_snapshot: policyRequired ? policyText : null,
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       setDialogOpen(false);
       setForm({ client_id: "", professional_id: "", service_id: "", date: "", time: "" });
+      setAcceptedPolicy(false);
       toast({ title: "Agendamento criado" });
     },
     onError: (e: any) => {
-      toast({ title: "Erro", description: e.message?.includes("Conflito") ? e.message : "Erro ao criar agendamento.", variant: "destructive" });
+      toast({ title: "Erro", description: e.message || "Erro ao criar agendamento.", variant: "destructive" });
     },
   });
 
@@ -315,7 +346,20 @@ const Agenda = () => {
                 <Input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} className="bg-background border-border text-foreground" required />
               </div>
             </div>
-            <Button type="submit" variant="emerald" className="w-full" disabled={createMutation.isPending}>
+            {policyText && (
+              <div className="rounded-md border border-border bg-secondary/40 p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-semibold text-foreground">Política antifuro</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{policyText}</p>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <Checkbox checked={acceptedPolicy} onCheckedChange={(v) => setAcceptedPolicy(!!v)} />
+                  <span className="text-xs text-foreground">Li e aceito a política em nome do cliente.</span>
+                </label>
+              </div>
+            )}
+            <Button type="submit" variant="emerald" className="w-full" disabled={createMutation.isPending || (policyRequired && !acceptedPolicy)}>
               {createMutation.isPending ? "Criando..." : "Criar agendamento"}
             </Button>
           </form>
