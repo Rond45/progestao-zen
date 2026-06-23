@@ -346,7 +346,20 @@ const Agenda = () => {
                 <Input type="time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} className="bg-background border-border text-foreground" required />
               </div>
             </div>
-            <Button type="submit" variant="emerald" className="w-full" disabled={createMutation.isPending}>
+            {policyText && (
+              <div className="rounded-md border border-border bg-secondary/40 p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-semibold text-foreground">Política antifuro</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{policyText}</p>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <Checkbox checked={acceptedPolicy} onCheckedChange={(v) => setAcceptedPolicy(!!v)} />
+                  <span className="text-xs text-foreground">Li e aceito a política em nome do cliente.</span>
+                </label>
+              </div>
+            )}
+            <Button type="submit" variant="emerald" className="w-full" disabled={createMutation.isPending || (policyRequired && !acceptedPolicy)}>
               {createMutation.isPending ? "Criando..." : "Criar agendamento"}
             </Button>
           </form>
