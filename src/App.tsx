@@ -32,6 +32,7 @@ import { useVerticalTheme } from "@/hooks/useVerticalTheme";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import PlanGate from "./components/PlanGate";
 
 const queryClient = new QueryClient();
 
