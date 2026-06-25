@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Calendar,
@@ -38,6 +38,15 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { profile, business } = useBusiness();
+  const location = useLocation();
+
+  const currentNav =
+    [...navItems]
+      .sort((a, b) => b.to.length - a.to.length)
+      .find((item) =>
+        item.end ? location.pathname === item.to : location.pathname.startsWith(item.to),
+      );
+  const currentLabel = currentNav?.label ?? "Painel";
 
   const handleLogout = async () => {
     await signOut();
@@ -56,15 +65,15 @@ const DashboardLayout = () => {
       )}
 
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border flex flex-col transition-transform duration-200 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border shadow-lg lg:shadow-md flex flex-col transition-transform duration-200 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         <div className="h-16 flex items-center justify-between px-5 border-b border-sidebar-border">
           <div className="flex items-center gap-2">
             <Scissors className="h-5 w-5 text-sidebar-primary" />
-            <span className="text-base font-bold text-foreground tracking-tight">
-              ProGestao<span className="text-sidebar-primary">+</span>
+            <span className="text-base font-semibold text-foreground tracking-[-0.01em] font-[family-name:'Manrope',Inter,sans-serif]">
+              ProGestão<span className="text-sidebar-primary font-bold ml-0.5">+</span>
             </span>
           </div>
           <button
@@ -85,7 +94,7 @@ const DashboardLayout = () => {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-sidebar-accent text-foreground"
+                    ? "bg-primary/15 text-primary shadow-sm border border-primary/20"
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
                 }`
               }
@@ -115,20 +124,23 @@ const DashboardLayout = () => {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b border-border flex items-center justify-between px-4 lg:px-6 bg-background/80 backdrop-blur-sm sticky top-0 z-30">
+        <header className="h-16 border-b border-border flex items-center justify-between px-4 lg:px-6 bg-card shadow-sm sticky top-0 z-30">
           <button
             className="lg:hidden text-muted-foreground hover:text-foreground"
             onClick={() => setSidebarOpen(true)}
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="hidden lg:block">
-            <h2 className="text-sm font-medium text-muted-foreground">{business?.name || "Meu Negocio"}</h2>
+          <div className="flex-1 lg:flex items-baseline gap-3 ml-2 lg:ml-0">
+            <h1 className="text-base font-semibold text-foreground tracking-tight">{currentLabel}</h1>
+            <span className="hidden lg:inline text-xs text-muted-foreground">
+              {business?.name || "Meu Negócio"}
+            </span>
           </div>
           <div />
         </header>
 
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main className="flex-1 p-4 lg:p-6 overflow-auto bg-muted/40">
           <Outlet />
         </main>
       </div>
