@@ -6,125 +6,126 @@
 
 @layer base {
   :root {
-    /* Barbearia Theme - Dark Emerald */
-    --background: 160 0% 4%;
-    --foreground: 157 45% 93%;
+    /* Barbearia Theme - Light Premium (off-white quente + ouro) */
+    --background: 45 100% 99%;
+    --foreground: 36 14% 15%;
 
-    --card: 153 35% 8%;
-    --card-foreground: 157 45% 93%;
+    --card: 42 42% 95%;
+    --card-foreground: 36 14% 15%;
 
-    --popover: 153 30% 10%;
-    --popover-foreground: 157 45% 93%;
+    --popover: 45 100% 99%;
+    --popover-foreground: 36 14% 15%;
 
-    --primary: 163 100% 39%;
-    --primary-foreground: 160 0% 4%;
+    --primary: 40 55% 51%;
+    --primary-foreground: 45 100% 99%;
 
-    --secondary: 152 32% 15%;
-    --secondary-foreground: 157 45% 93%;
+    --secondary: 42 42% 95%;
+    --secondary-foreground: 36 14% 15%;
 
-    --muted: 152 25% 18%;
-    --muted-foreground: 155 30% 60%;
+    --muted: 42 30% 92%;
+    --muted-foreground: 39 9% 50%;
 
-    --accent: 163 100% 39%;
-    --accent-foreground: 160 0% 4%;
+    --accent: 40 55% 51%;
+    --accent-foreground: 45 100% 99%;
 
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 85% 97%;
 
-    --border: 152 32% 15%;
-    --input: 153 35% 8%;
-    --ring: 163 100% 39%;
+    --border: 41 40% 88%;
+    --input: 41 40% 88%;
+    --ring: 40 55% 51%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 160 0% 4%;
-    --sidebar-foreground: 157 45% 93%;
-    --sidebar-primary: 163 100% 39%;
-    --sidebar-primary-foreground: 160 0% 4%;
-    --sidebar-accent: 152 32% 15%;
-    --sidebar-accent-foreground: 157 45% 93%;
-    --sidebar-border: 152 32% 15%;
-    --sidebar-ring: 163 100% 39%;
+    --sidebar-background: 43 41% 97%;
+    --sidebar-foreground: 36 14% 15%;
+    --sidebar-primary: 40 55% 51%;
+    --sidebar-primary-foreground: 45 100% 99%;
+    --sidebar-accent: 42 42% 95%;
+    --sidebar-accent-foreground: 36 14% 15%;
+    --sidebar-border: 41 40% 88%;
+    --sidebar-ring: 40 55% 51%;
 
-    --emerald: 163 100% 39%;
-    --emerald-hover: 163 100% 33%;
-    --emerald-active: 163 100% 28%;
-    --emerald-foreground: 160 0% 4%;
-    --surface: 153 35% 8%;
-    --surface-hover: 153 30% 11%;
-    --chart-1: 163 100% 39%;
-    --chart-2: 163 100% 33%;
-    --chart-3: 163 100% 28%;
-    --chart-4: 152 32% 15%;
-    --chart-5: 155 30% 60%;
-    --sidebar: 153 35% 8%;
+    --emerald: 40 55% 51%;
+    --emerald-hover: 39 61% 44%;
+    --emerald-active: 39 61% 38%;
+    --emerald-foreground: 45 100% 99%;
+    --surface: 42 42% 95%;
+    --surface-hover: 42 35% 90%;
+    --chart-1: 40 55% 51%;
+    --chart-2: 39 61% 44%;
+    --chart-3: 39 61% 38%;
+    --chart-4: 41 40% 80%;
+    --chart-5: 39 9% 50%;
+    --sidebar: 43 41% 97%;
     --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.08);
-    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.1);
-    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.15), 0 1px 2px -1px hsl(0 0% 0% / 0.15);
-    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.2), 0 1px 2px -1px hsl(0 0% 0% / 0.15);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.2), 0 2px 4px -2px hsl(0 0% 0% / 0.15);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.2), 0 4px 6px -4px hsl(0 0% 0% / 0.15);
-    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.2), 0 8px 10px -6px hsl(0 0% 0% / 0.15);
-    --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.35);
+    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.03);
+    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.04);
+    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.06), 0 1px 2px -1px hsl(0 0% 0% / 0.06);
+    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.08), 0 1px 2px -1px hsl(0 0% 0% / 0.06);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.08), 0 2px 4px -2px hsl(0 0% 0% / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.08), 0 4px 6px -4px hsl(0 0% 0% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.08), 0 8px 10px -6px hsl(0 0% 0% / 0.05);
+    --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.12);
     --tracking-normal: 0em;
     --spacing: 0.25rem;
   }
 
-  /* Salon (Amethyst) theme overrides */
+  /* Salon theme - Light Premium (branco róseo + ouro-rosé) */
   .salon-theme {
-    --background: 240 33% 5%;
-    --foreground: 267 100% 96%;
+    --background: 330 100% 100%;
+    --foreground: 278 13% 17%;
 
-    --card: 264 35% 8%;
-    --card-foreground: 267 100% 96%;
+    --card: 330 37% 97%;
+    --card-foreground: 278 13% 17%;
 
-    --popover: 264 30% 10%;
-    --popover-foreground: 267 100% 96%;
+    --popover: 330 100% 100%;
+    --popover-foreground: 278 13% 17%;
 
-    --primary: 271 100% 60%;
-    --primary-foreground: 267 100% 96%;
+    --primary: 29 48% 61%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 265 43% 18%;
-    --secondary-foreground: 267 100% 96%;
+    --secondary: 330 37% 97%;
+    --secondary-foreground: 278 13% 17%;
 
-    --muted: 265 35% 22%;
-    --muted-foreground: 269 38% 63%;
+    --muted: 328 25% 94%;
+    --muted-foreground: 290 5% 56%;
 
-    --accent: 271 100% 60%;
-    --accent-foreground: 267 100% 96%;
+    --accent: 29 48% 61%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 85% 97%;
 
-    --border: 265 43% 18%;
-    --input: 264 35% 8%;
-    --ring: 271 100% 60%;
+    --border: 328 29% 91%;
+    --input: 328 29% 91%;
+    --ring: 29 48% 61%;
 
-    --sidebar-background: 240 33% 5%;
-    --sidebar-foreground: 267 100% 96%;
-    --sidebar-primary: 271 100% 60%;
-    --sidebar-primary-foreground: 267 100% 96%;
-    --sidebar-accent: 265 43% 18%;
-    --sidebar-accent-foreground: 267 100% 96%;
-    --sidebar-border: 265 43% 18%;
-    --sidebar-ring: 271 100% 60%;
+    --sidebar-background: 330 33% 98%;
+    --sidebar-foreground: 278 13% 17%;
+    --sidebar-primary: 29 48% 61%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 330 37% 97%;
+    --sidebar-accent-foreground: 278 13% 17%;
+    --sidebar-border: 328 29% 91%;
+    --sidebar-ring: 29 48% 61%;
 
-    --emerald: 271 100% 60%;
-    --emerald-hover: 270 75% 48%;
-    --emerald-active: 270 80% 40%;
-    --emerald-foreground: 267 100% 96%;
-    --surface: 264 35% 8%;
-    --surface-hover: 264 30% 12%;
-    --chart-1: 271 100% 60%;
-    --chart-2: 270 75% 48%;
-    --chart-3: 270 80% 40%;
-    --chart-4: 265 43% 18%;
-    --chart-5: 269 38% 63%;
+    --emerald: 29 48% 61%;
+    --emerald-hover: 24 43% 55%;
+    --emerald-active: 24 43% 48%;
+    --emerald-foreground: 0 0% 100%;
+    --surface: 330 37% 97%;
+    --surface-hover: 330 30% 93%;
+    --chart-1: 29 48% 61%;
+    --chart-2: 24 43% 55%;
+    --chart-3: 24 43% 48%;
+    --chart-4: 328 29% 85%;
+    --chart-5: 290 5% 56%;
+    --sidebar: 330 33% 98%;
   }
 
-  /* Landing page — warm gold/charcoal premium palette */
+  /* Landing page — warm gold/charcoal premium palette (mantida) */
   .landing-theme {
     --background: 30 8% 4%;
     --foreground: 40 20% 92%;
@@ -175,13 +176,13 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    background: linear-gradient(165deg, hsl(160 0% 4%) 0%, hsl(153 35% 6%) 100%);
+    background: linear-gradient(165deg, hsl(45 100% 99%) 0%, hsl(42 42% 96%) 100%);
     min-height: 100vh;
   }
 
   .salon-theme,
   .salon-theme body {
-    background: linear-gradient(165deg, hsl(240 33% 5%) 0%, hsl(264 35% 6%) 100%);
+    background: linear-gradient(165deg, hsl(330 100% 100%) 0%, hsl(330 37% 97%) 100%);
   }
 
   .landing-theme,
@@ -208,13 +209,13 @@
     @apply transition-all duration-200;
   }
   input:focus, textarea:focus, select:focus {
-    box-shadow: 0 0 0 3px hsla(163, 100%, 39%, 0.25);
+    box-shadow: 0 0 0 3px hsla(40, 55%, 51%, 0.25);
   }
 
   .salon-theme input:focus,
   .salon-theme textarea:focus,
   .salon-theme select:focus {
-    box-shadow: 0 0 0 3px hsla(271, 100%, 60%, 0.25);
+    box-shadow: 0 0 0 3px hsla(29, 48%, 61%, 0.25);
   }
 
   /* Filled inputs get subtle background change */
@@ -226,15 +227,15 @@
 
 @layer utilities {
   .emerald-glow {
-    box-shadow: 0 0 20px -5px hsl(163 100% 39% / 0.15);
+    box-shadow: 0 0 20px -5px hsl(40 55% 51% / 0.25);
   }
 
   .salon-theme .emerald-glow {
-    box-shadow: 0 0 20px -5px hsl(271 100% 60% / 0.15);
+    box-shadow: 0 0 20px -5px hsl(29 48% 61% / 0.25);
   }
 
   .card-shadow {
-    box-shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.25), 0 1px 2px -1px hsl(0 0% 0% / 0.2);
+    box-shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.06), 0 1px 2px -1px hsl(0 0% 0% / 0.05);
   }
 
   .silk-surface {
