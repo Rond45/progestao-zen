@@ -76,13 +76,13 @@ const App = () => {
                   <Route path="agenda" element={<Agenda />} />
                   <Route path="clientes" element={<Clientes />} />
                   <Route path="clientes/:id" element={<ClienteDetalhe />} />
-                  <Route path="profissionais" element={<Profissionais />} />
-                  <Route path="profissionais/:id" element={<ProfissionalDetalhe />} />
+                  <Route path="profissionais" element={<PlanGate minPlan="pro" featureKey="profissionais"><Profissionais /></PlanGate>} />
+                  <Route path="profissionais/:id" element={<PlanGate minPlan="pro" featureKey="profissionais"><ProfissionalDetalhe /></PlanGate>} />
                   <Route path="servicos" element={<Servicos />} />
-                  <Route path="produtos" element={<Produtos />} />
-                  <Route path="vendas" element={<VendasConsumo />} />
-                  <Route path="financeiro" element={<Financeiro />} />
-                  <Route path="whatsapp" element={<WhatsAppIA />} />
+                  <Route path="produtos" element={<PlanGate minPlan="premium" featureKey="produtos"><Produtos /></PlanGate>} />
+                  <Route path="vendas" element={<PlanGate minPlan="premium" featureKey="vendas"><VendasConsumo /></PlanGate>} />
+                  <Route path="financeiro" element={<PlanGate minPlan="pro" featureKey="financeiro"><Financeiro /></PlanGate>} />
+                  <Route path="whatsapp" element={<PlanGate minPlan="pro" featureKey="whatsapp"><WhatsAppIA /></PlanGate>} />
                   <Route path="configuracoes" element={<Configuracoes />} />
                   <Route path="planos" element={<Planos />} />
                 </Route>
