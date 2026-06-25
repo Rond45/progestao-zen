@@ -15,20 +15,23 @@ import {
   Package,
   ShoppingCart,
   CreditCard,
+  Lock,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useBusiness } from "@/hooks/useBusiness";
+import { usePlan } from "@/hooks/usePlan";
+import { ROUTE_MIN_PLAN, type PlanName } from "@/lib/planAccess";
 
-const navItems = [
+const navItems: { to: string; icon: any; label: string; end?: boolean; minPlan?: PlanName }[] = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Painel", end: true },
   { to: "/dashboard/agenda", icon: Calendar, label: "Agenda" },
   { to: "/dashboard/clientes", icon: Users, label: "Clientes" },
-  { to: "/dashboard/profissionais", icon: UserRound, label: "Profissionais" },
+  { to: "/dashboard/profissionais", icon: UserRound, label: "Profissionais", minPlan: "pro" },
   { to: "/dashboard/servicos", icon: Scissors, label: "Serviços" },
-  { to: "/dashboard/produtos", icon: Package, label: "Produtos" },
-  { to: "/dashboard/vendas", icon: ShoppingCart, label: "Vendas e Consumo" },
-  { to: "/dashboard/financeiro", icon: DollarSign, label: "Financeiro" },
-  { to: "/dashboard/whatsapp", icon: MessageSquare, label: "WhatsApp IA" },
+  { to: "/dashboard/produtos", icon: Package, label: "Produtos", minPlan: "premium" },
+  { to: "/dashboard/vendas", icon: ShoppingCart, label: "Vendas e Consumo", minPlan: "premium" },
+  { to: "/dashboard/financeiro", icon: DollarSign, label: "Financeiro", minPlan: "pro" },
+  { to: "/dashboard/whatsapp", icon: MessageSquare, label: "WhatsApp IA", minPlan: "pro" },
   { to: "/dashboard/planos", icon: CreditCard, label: "Planos" },
   { to: "/dashboard/configuracoes", icon: Settings, label: "Configurações" },
 ];
@@ -39,6 +42,7 @@ const DashboardLayout = () => {
   const { signOut } = useAuth();
   const { profile, business } = useBusiness();
   const location = useLocation();
+  const { hasAccess } = usePlan();
 
   const currentNav =
     [...navItems]
@@ -86,6 +90,9 @@ const DashboardLayout = () => {
 
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
+            (() => {
+              const locked = item.minPlan ? !hasAccess(item.minPlan) : false;
+              return (
             <NavLink
               key={item.to}
               to={item.to}
@@ -95,13 +102,18 @@ const DashboardLayout = () => {
                 `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-primary/15 text-primary shadow-sm border border-primary/20"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
+                    : locked
+                      ? "text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-foreground/80"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-foreground"
                 }`
               }
             >
               <item.icon className="h-4 w-4" />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {locked && <Lock className="h-3.5 w-3.5 text-muted-foreground" />}
             </NavLink>
+              );
+            })()
           ))}
         </nav>
 
