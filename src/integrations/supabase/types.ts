@@ -796,6 +796,14 @@ export type Database = {
     }
     Functions: {
       get_current_business_id: { Args: never; Returns: string }
+      get_professional_compensation: {
+        Args: { _professional_id: string }
+        Returns: {
+          commission_percentage: number
+          compensation_type: string
+          salary_cents: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["platform_role"]
