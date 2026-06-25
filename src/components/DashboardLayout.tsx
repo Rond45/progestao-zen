@@ -22,7 +22,6 @@ import { useBusiness } from "@/hooks/useBusiness";
 import { usePlan } from "@/hooks/usePlan";
 import { ROUTE_MIN_PLAN, type PlanName } from "@/lib/planAccess";
 
-const navItems = [
 const navItems: { to: string; icon: any; label: string; end?: boolean; minPlan?: PlanName }[] = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Painel", end: true },
   { to: "/dashboard/agenda", icon: Calendar, label: "Agenda" },
