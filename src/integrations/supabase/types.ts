@@ -655,12 +655,17 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          acesso_valido_ate: string | null
           cancel_at_period_end: boolean | null
           canceled_at: string | null
           created_at: string
           current_period_end: string | null
           current_period_start: string | null
           id: string
+          metodo_pagamento: string | null
+          mp_payer_email: string | null
+          mp_payment_id: string | null
+          mp_preapproval_id: string | null
           plan_name: string
           status: string
           stripe_customer_id: string | null
@@ -670,12 +675,17 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          acesso_valido_ate?: string | null
           cancel_at_period_end?: boolean | null
           canceled_at?: string | null
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          metodo_pagamento?: string | null
+          mp_payer_email?: string | null
+          mp_payment_id?: string | null
+          mp_preapproval_id?: string | null
           plan_name?: string
           status?: string
           stripe_customer_id?: string | null
@@ -685,12 +695,17 @@ export type Database = {
           user_id: string
         }
         Update: {
+          acesso_valido_ate?: string | null
           cancel_at_period_end?: boolean | null
           canceled_at?: string | null
           created_at?: string
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          metodo_pagamento?: string | null
+          mp_payer_email?: string | null
+          mp_payment_id?: string | null
+          mp_preapproval_id?: string | null
           plan_name?: string
           status?: string
           stripe_customer_id?: string | null
