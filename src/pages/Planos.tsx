@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Check, Crown, Zap, Star, ExternalLink, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { Check, Crown, Zap, Star, AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import PagamentoModal from "@/components/pagamento/PagamentoModal";
 
 const PLANS = [
   {
     id: "basico",
     name: "Básico",
     price: "39",
-    priceId: import.meta.env.VITE_STRIPE_PRICE_BASICO || "price_1T48dkQrmNyfafHt347XuRUG",
     description: "Ideal para profissionais autônomos",
     icon: Star,
     features: ["1 profissional", "Agenda completa", "Cadastro de clientes", "Financeiro básico", "50 agendamentos/mês"],
@@ -21,7 +21,6 @@ const PLANS = [
     id: "pro",
     name: "Pro",
     price: "89",
-    priceId: import.meta.env.VITE_STRIPE_PRICE_PRO || "price_1T48l6QrmNyfafHtWFDjf5cQ",
     description: "Para equipes em crescimento",
     icon: Zap,
     popular: true,
@@ -38,7 +37,6 @@ const PLANS = [
     id: "premium",
     name: "Premium",
     price: "169",
-    priceId: import.meta.env.VITE_STRIPE_PRICE_PREMIUM || "price_1T48mmQrmNyfafHtiUztlp7B",
     description: "Controle total do seu negócio",
     icon: Crown,
     features: [
@@ -66,8 +64,7 @@ const Planos = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
-  const [portalLoading, setPortalLoading] = useState(false);
+  const [modalPlan, setModalPlan] = useState<"basico" | "pro" | "premium" | null>(null);
   const autoCheckoutTriggered = useRef(false);
 
   useEffect(() => {
@@ -79,7 +76,7 @@ const Planos = () => {
     }
   }, [searchParams]);
 
-  // Auto-trigger checkout when redirected from landing/login with ?plan=
+  // Auto-open payment modal when redirected from landing/login with ?plan=
   useEffect(() => {
     if (!user || loading || autoCheckoutTriggered.current) return;
     const planParam = searchParams.get("plan");
@@ -87,9 +84,8 @@ const Planos = () => {
     const plan = PLANS.find((p) => p.id === planParam);
     if (plan) {
       autoCheckoutTriggered.current = true;
-      // Clean URL using React Router (replaces current history entry)
       setSearchParams({}, { replace: true });
-      handleCheckout(plan.priceId, plan.id);
+      setModalPlan(plan.id as any);
     }
   }, [user, loading, searchParams]);
 
@@ -107,43 +103,7 @@ const Planos = () => {
     fetchSubscription();
   }, [user]);
 
-  const handleCheckout = async (priceId: string, planName: string) => {
-    if (!priceId) {
-      toast.error("Price ID não configurado. Configure as variáveis de ambiente VITE_STRIPE_PRICE_*.");
-      return;
-    }
-    setCheckoutLoading(planName);
-    try {
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { priceId, planName },
-      });
-      if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } catch (err: any) {
-      console.error(err);
-      toast.error("Erro ao iniciar checkout: " + (err.message || "Tente novamente."));
-    } finally {
-      setCheckoutLoading(null);
-    }
-  };
-
-  const handlePortal = async () => {
-    setPortalLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("customer-portal");
-      if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } catch (err: any) {
-      console.error(err);
-      toast.error("Erro ao abrir portal: " + (err.message || "Tente novamente."));
-    } finally {
-      setPortalLoading(false);
-    }
-  };
+  const openPayment = (planId: string) => setModalPlan(planId as any);
 
   const currentPlan = subscription?.plan_name;
   const currentStatus = subscription?.status;
@@ -175,18 +135,10 @@ const Planos = () => {
                 )}
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={handlePortal} disabled={portalLoading}>
-              {portalLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <ExternalLink className="h-4 w-4 mr-2" />
-              )}
-              Gerenciar assinatura
-            </Button>
           </div>
-          {subscription.current_period_end && (
+          {subscription.acesso_valido_ate && (
             <p className="text-sm text-muted-foreground">
-              Próxima renovação: {new Date(subscription.current_period_end).toLocaleDateString("pt-BR")}
+              Acesso válido até: {new Date(subscription.acesso_valido_ate).toLocaleDateString("pt-BR")}
             </p>
           )}
         </div>
@@ -199,10 +151,6 @@ const Planos = () => {
               <p className="text-sm text-muted-foreground">Atualize seu método de pagamento para manter o acesso.</p>
             </div>
           </div>
-          <Button variant="destructive" size="sm" className="mt-4" onClick={handlePortal} disabled={portalLoading}>
-            {portalLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            Atualizar pagamento
-          </Button>
         </div>
       ) : null}
 
@@ -253,10 +201,8 @@ const Planos = () => {
                 <Button
                   variant={plan.popular ? "default" : "outline"}
                   className="w-full"
-                  disabled={!!checkoutLoading}
-                  onClick={() => handleCheckout(plan.priceId, plan.id)}
+                  onClick={() => openPayment(plan.id)}
                 >
-                  {checkoutLoading === plan.id ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   {isActive ? "Trocar plano" : "Assinar"}
                 </Button>
               )}
@@ -264,6 +210,14 @@ const Planos = () => {
           );
         })}
       </div>
+
+      {modalPlan && (
+        <PagamentoModal
+          open={!!modalPlan}
+          onOpenChange={(v) => { if (!v) setModalPlan(null); }}
+          plano={modalPlan}
+        />
+      )}
     </div>
   );
 };
