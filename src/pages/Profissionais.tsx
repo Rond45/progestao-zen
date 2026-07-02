@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, MoreHorizontal, Pencil, Trash2, UserCheck, UserX, Eye } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, UserCheck, UserX, Eye, Lock } from "lucide-react";
 import { useBusiness } from "@/hooks/useBusiness";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -17,13 +18,19 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { usePlan } from "@/hooks/usePlan";
+import { PLAN_LABEL, PROFESSIONAL_LIMITS, NEXT_PLAN, type PlanName } from "@/lib/planAccess";
+import PagamentoModal from "@/components/pagamento/PagamentoModal";
 
 const Profissionais = () => {
   const { businessId } = useBusiness();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { planName } = usePlan();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [paymentPlan, setPaymentPlan] = useState<PlanName | null>(null);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState({
     name: "", specialty: "", compensation_type: "percentage", commission_percentage: "", salary_cents: "",
@@ -38,6 +45,20 @@ const Profissionais = () => {
     },
     enabled: !!businessId,
   });
+
+  const limit = PROFESSIONAL_LIMITS[planName];
+  const count = professionals.length;
+  const atLimit = count >= limit;
+  const nextPlan = NEXT_PLAN[planName];
+
+  const handleNewClick = () => {
+    if (atLimit) {
+      setUpgradeOpen(true);
+      return;
+    }
+    resetForm();
+    setDialogOpen(true);
+  };
 
   const saveMutation = useMutation({
     mutationFn: async (values: typeof form) => {
@@ -114,14 +135,14 @@ const Profissionais = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Profissionais</h1>
-          <p className="text-sm text-muted-foreground mt-1">{professionals.length} profissionais cadastrados</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {count} de {limit >= 9999 ? "∞" : limit} profissionais (plano {PLAN_LABEL[planName]})
+          </p>
         </div>
+        <Button variant="emerald" size="sm" onClick={handleNewClick}>
+          {atLimit ? <Lock className="h-4 w-4" /> : <Plus className="h-4 w-4" />} Novo profissional
+        </Button>
         <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button variant="emerald" size="sm" onClick={() => { resetForm(); setDialogOpen(true); }}>
-              <Plus className="h-4 w-4" /> Novo profissional
-            </Button>
-          </DialogTrigger>
           <DialogContent className="bg-card border-border">
             <DialogHeader>
               <DialogTitle className="text-foreground">{editing ? "Editar profissional" : "Novo profissional"}</DialogTitle>
@@ -162,6 +183,37 @@ const Profissionais = () => {
             </form>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={upgradeOpen} onOpenChange={setUpgradeOpen}>
+          <DialogContent className="bg-card border-primary/30">
+            <DialogHeader>
+              <div className="mx-auto rounded-full bg-primary/15 p-3 mb-2 border border-primary/30">
+                <Lock className="h-6 w-6 text-primary" />
+              </div>
+              <DialogTitle className="text-center">Limite de profissionais atingido</DialogTitle>
+              <DialogDescription className="text-center">
+                Seu plano {PLAN_LABEL[planName]} permite até {limit >= 9999 ? "ilimitados" : limit} profissionais.
+                {planName !== "premium" && ` Faça upgrade para o plano ${PLAN_LABEL[nextPlan]} e adicione mais.`}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex-col gap-2 sm:flex-col">
+              {planName !== "premium" && (
+                <Button className="w-full" onClick={() => { setUpgradeOpen(false); setPaymentPlan(nextPlan); }}>
+                  Fazer upgrade para {PLAN_LABEL[nextPlan]}
+                </Button>
+              )}
+              <Button variant="ghost" className="w-full" onClick={() => setUpgradeOpen(false)}>Fechar</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {paymentPlan && (
+          <PagamentoModal
+            open={!!paymentPlan}
+            onOpenChange={(v) => { if (!v) setPaymentPlan(null); }}
+            plano={paymentPlan}
+          />
+        )}
       </div>
 
       {isLoading ? (
