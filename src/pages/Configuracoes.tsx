@@ -112,7 +112,7 @@ const Configuracoes = () => {
   const { data: financeAccess } = useQuery({
     queryKey: ["finance-access", businessId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("finance_access").select("*").eq("business_id", businessId!).maybeSingle();
+      const { data, error } = await supabase.from("finance_access").select("business_id, name, updated_at").eq("business_id", businessId!).maybeSingle();
       if (error) throw error;
       return data;
     },
