@@ -11,14 +11,17 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
   const mpToken = Deno.env.get("MP_ACCESS_TOKEN");
+  const webhookSecret = Deno.env.get("MP_WEBHOOK_SECRET");
 
   try {
     const url = new URL(req.url);
     let type = url.searchParams.get("type") ?? url.searchParams.get("topic");
     let id = url.searchParams.get("id") ?? url.searchParams.get("data.id");
 
+    // Ler corpo cru uma única vez (necessário para validar assinatura e reparsear)
+    let raw = "";
     if (req.method !== "GET") {
-      const raw = await req.text();
+      raw = await req.text();
       if (raw) {
         try {
           const body = JSON.parse(raw);
@@ -29,6 +32,51 @@ Deno.serve(async (req) => {
           }
         } catch (_) { /* ignore */ }
       }
+    }
+
+    // Validação de assinatura do Mercado Pago (x-signature + x-request-id)
+    if (webhookSecret) {
+      const signatureHeader = req.headers.get("x-signature") ?? "";
+      const requestId = req.headers.get("x-request-id") ?? "";
+      const dataId = url.searchParams.get("data.id") ?? (id ?? "");
+
+      const parts = Object.fromEntries(
+        signatureHeader.split(",").map((kv) => {
+          const [k, ...v] = kv.trim().split("=");
+          return [k, v.join("=")];
+        }),
+      );
+      const ts = parts["ts"];
+      const v1 = parts["v1"];
+
+      if (!ts || !v1) {
+        console.warn("Assinatura MP ausente/malformada");
+        return new Response("invalid signature", { status: 401 });
+      }
+
+      const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
+      const key = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(webhookSecret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"],
+      );
+      const sigBuf = await crypto.subtle.sign(
+        "HMAC",
+        key,
+        new TextEncoder().encode(manifest),
+      );
+      const expected = Array.from(new Uint8Array(sigBuf))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      if (expected !== v1) {
+        console.warn("Assinatura MP inválida");
+        return new Response("invalid signature", { status: 401 });
+      }
+    } else {
+      console.warn("MP_WEBHOOK_SECRET não configurado — pulando validação");
     }
 
     console.log("MP webhook:", { type, id });
