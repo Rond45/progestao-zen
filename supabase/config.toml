@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.whatsapp-webhook]
 verify_jwt = false
+
+[functions.webhook-mercadopago]
+verify_jwt = false
+
+[functions.verificar-vencimentos]
+verify_jwt = false
