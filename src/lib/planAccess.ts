@@ -16,17 +16,6 @@ export const FEATURE_COPY: Record<
   string,
   { title: string; description: string; minPlan: PlanName }
 > = {
-  profissionais: {
-    title: "Profissionais",
-    description: "Gerencie sua equipe e a agenda de cada profissional.",
-    minPlan: "pro",
-  },
-  financeiro: {
-    title: "Financeiro",
-    description:
-      "Controle seu caixa, receitas e despesas com relatórios completos.",
-    minPlan: "pro",
-  },
   whatsapp: {
     title: "WhatsApp IA",
     description:
@@ -46,9 +35,19 @@ export const FEATURE_COPY: Record<
 };
 
 export const ROUTE_MIN_PLAN: Record<string, PlanName> = {
-  "/dashboard/profissionais": "pro",
-  "/dashboard/financeiro": "pro",
   "/dashboard/whatsapp": "pro",
   "/dashboard/produtos": "premium",
   "/dashboard/vendas": "premium",
+};
+
+export const PROFESSIONAL_LIMITS: Record<PlanName, number> = {
+  basico: 2,
+  pro: 4,
+  premium: 9999,
+};
+
+export const NEXT_PLAN: Record<PlanName, PlanName> = {
+  basico: "pro",
+  pro: "premium",
+  premium: "premium",
 };

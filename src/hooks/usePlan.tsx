@@ -33,9 +33,13 @@ export const usePlan = () => {
   const isActive = statusOk && dateOk;
   const vencido = !!acessoValidoAte && acessoValidoAte.getTime() <= now.getTime();
 
-  const planName: PlanName = isActive
-    ? ((data!.plan_name as PlanName) ?? "basico")
-    : "basico";
+  const isTrialing = !!data && data.status === "trialing" && dateOk;
+  // Trial gives full Premium access
+  const planName: PlanName = isTrialing
+    ? "premium"
+    : isActive
+      ? ((data!.plan_name as PlanName) ?? "basico")
+      : "basico";
 
   const hasAccess = (minPlan: PlanName) =>
     PLAN_LEVEL[planName] >= PLAN_LEVEL[minPlan];
@@ -44,6 +48,7 @@ export const usePlan = () => {
     planName,
     currentPlanName: (data?.plan_name as PlanName | null) ?? null,
     isActive,
+    isTrialing,
     vencido,
     acessoValidoAte,
     metodoPagamento,

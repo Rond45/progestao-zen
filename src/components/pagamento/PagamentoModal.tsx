@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { QrCode, CreditCard, Copy, Loader2, CheckCircle2, ArrowLeft } from "lucide-react";
 
 type PlanoId = "basico" | "pro" | "premium";
-const PLAN_PRICE: Record<PlanoId, string> = { basico: "39", pro: "89", premium: "169" };
+const PLAN_PRICE: Record<PlanoId, string> = { basico: "39", pro: "79", premium: "149" };
 const PLAN_LABEL: Record<PlanoId, string> = { basico: "Básico", pro: "Pro", premium: "Premium" };
 
 type Step = "choose" | "pix" | "loading";
