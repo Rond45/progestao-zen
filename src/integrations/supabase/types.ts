@@ -827,6 +827,10 @@ export type Database = {
         Returns: boolean
       }
       is_business_member: { Args: { _business_id: string }; Returns: boolean }
+      verify_finance_access: {
+        Args: { _business_id: string; _name: string; _password: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "owner" | "professional" | "reception"
