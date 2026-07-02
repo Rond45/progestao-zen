@@ -17,7 +17,11 @@ const Financeiro = () => {
   const { data: financeAccess, isLoading: financeAccessLoading } = useQuery({
     queryKey: ["finance-access", businessId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("finance_access").select("*").eq("business_id", businessId!).maybeSingle();
+      const { data, error } = await supabase
+        .from("finance_access")
+        .select("business_id, name, updated_at")
+        .eq("business_id", businessId!)
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -60,16 +64,21 @@ const Financeiro = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!financeAccess) {
+    if (!financeAccess || !businessId) {
       setLoginError("Acesso financeiro não configurado. Configure em Configurações.");
       return;
     }
-    if (loginName === financeAccess.name && loginPassword === financeAccess.password_hash) {
-      setAuthenticated(true);
-      setLoginError("");
-    } else {
+    const { data, error } = await supabase.rpc("verify_finance_access", {
+      _business_id: businessId,
+      _name: loginName,
+      _password: loginPassword,
+    });
+    if (error || !data) {
       setLoginError("Nome ou senha incorretos.");
+      return;
     }
+    setAuthenticated(true);
+    setLoginError("");
   };
 
   // If finance access exists but not authenticated — show login
