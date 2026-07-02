@@ -1,15 +1,15 @@
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Clock, LogOut } from "lucide-react";
+import { AlertTriangle, Clock, LogOut, Sparkles } from "lucide-react";
 import { usePlan } from "@/hooks/usePlan";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import PagamentoModal from "./PagamentoModal";
 import type { PlanName } from "@/lib/planAccess";
 
 export default function VencimentoGate() {
-  const { vencido, acessoValidoAte, currentPlanName, planName, loading } = usePlan();
+  const { vencido, acessoValidoAte, currentPlanName, planName, isTrialing, loading } = usePlan();
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const [paymentPlan, setPaymentPlan] = useState<PlanName | null>(null);
@@ -29,12 +29,31 @@ export default function VencimentoGate() {
     navigate("/");
   };
 
-  // Preventive banner (3 days or less, still active)
+  // Preventive banner (3 days or less, still active, not trialing)
   const showBanner =
-    !vencido && acessoValidoAte && daysLeft !== null && daysLeft <= 3 && daysLeft >= 0;
+    !vencido && !isTrialing && acessoValidoAte && daysLeft !== null && daysLeft <= 3 && daysLeft >= 0;
+
+  const showTrialBanner = isTrialing && daysLeft !== null && daysLeft >= 0;
 
   return (
     <>
+      {showTrialBanner && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border-2 border-primary/40 bg-primary/10 px-4 py-3 shadow-sm">
+          <Sparkles className="h-5 w-5 text-primary shrink-0" />
+          <div className="flex-1 min-w-[200px]">
+            <p className="text-sm font-semibold text-foreground">
+              Teste grátis: {daysLeft === 0 ? "último dia" : `faltam ${daysLeft} ${daysLeft === 1 ? "dia" : "dias"}`}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Você tem acesso completo ao Premium. Escolha seu plano para continuar sem interrupções.
+            </p>
+          </div>
+          <Button asChild size="sm">
+            <Link to="/dashboard/planos">Escolher plano</Link>
+          </Button>
+        </div>
+      )}
+
       {showBanner && (
         <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border-2 border-primary/40 bg-primary/10 px-4 py-3 shadow-sm">
           <Clock className="h-5 w-5 text-primary shrink-0" />
