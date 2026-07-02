@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useBusiness } from "@/hooks/useBusiness";
 import { usePlan } from "@/hooks/usePlan";
 import { ROUTE_MIN_PLAN, type PlanName } from "@/lib/planAccess";
+import VencimentoGate from "@/components/pagamento/VencimentoGate";
 
 const navItems: { to: string; icon: any; label: string; end?: boolean; minPlan?: PlanName }[] = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Painel", end: true },
@@ -153,6 +154,7 @@ const DashboardLayout = () => {
         </header>
 
         <main className="flex-1 p-4 lg:p-6 overflow-auto bg-muted/40">
+          <VencimentoGate />
           <Outlet />
         </main>
       </div>
