@@ -59,7 +59,6 @@ export default function VencimentoGate() {
           className="max-w-md border-primary/40 shadow-[0_20px_60px_-10px_rgba(184,143,60,0.45)]"
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
-          hideClose
         >
           <DialogHeader>
             <div className="mx-auto rounded-full bg-primary/15 p-3 mb-2">
