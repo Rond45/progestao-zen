@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Wifi, WifiOff, Bot, FileText, Settings, QrCode, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Wifi, WifiOff, Bot, FileText, Settings, QrCode, Loader2, KeyRound, Smartphone } from "lucide-react";
 import { useBusiness } from "@/hooks/useBusiness";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,11 +17,14 @@ const WhatsAppIA = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const qc = useQueryClient();
-  const [qrModal, setQrModal] = useState<{ open: boolean; qr: string; loading: boolean }>({
-    open: false,
-    qr: "",
-    loading: false,
-  });
+  const [connectModal, setConnectModal] = useState<{
+    open: boolean;
+    method: "qr" | "code";
+    qr: string;
+    pairing: string;
+    loading: boolean;
+  }>({ open: false, method: "qr", qr: "", pairing: "", loading: false });
+  const [phoneInput, setPhoneInput] = useState("");
 
   const { data: connection } = useQuery({
     queryKey: ["whatsapp-connection", businessId],
@@ -67,32 +73,47 @@ const WhatsAppIA = () => {
   const isConnected = connection?.status === "connected";
 
   const connectMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (vars: { phone_number?: string }) => {
       const { data, error } = await supabase.functions.invoke("whatsapp-connect", {
-        body: { business_id: businessId },
+        body: { business_id: businessId, phone_number: vars.phone_number },
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      return data as { qr_code?: string | null; message?: string };
+      return data as { qr_code?: string | null; pairing_code?: string | null; message?: string };
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["whatsapp-connection", businessId] });
-      if (data?.qr_code) {
-        setQrModal({ open: true, qr: data.qr_code, loading: false });
-      } else {
+      setConnectModal((p) => ({
+        ...p,
+        qr: data?.qr_code || "",
+        pairing: data?.pairing_code || "",
+        loading: false,
+      }));
+      if (!data?.qr_code && !data?.pairing_code) {
         toast({ title: data?.message || "Instância criada. Tente novamente em instantes." });
       }
     },
-    onError: (e: any) =>
-      toast({ title: "Erro ao conectar", description: e.message, variant: "destructive" }),
+    onError: (e: any) => {
+      setConnectModal((p) => ({ ...p, loading: false }));
+      toast({ title: "Erro ao conectar", description: e.message, variant: "destructive" });
+    },
   });
 
-  const handleConnect = () => {
+  const handleConnectQR = () => {
     if (!businessId) return;
-    setQrModal({ open: true, qr: "", loading: true });
-    connectMutation.mutate(undefined, {
-      onSettled: () => setQrModal((p) => ({ ...p, loading: false })),
-    });
+    setConnectModal({ open: true, method: "qr", qr: "", pairing: "", loading: true });
+    connectMutation.mutate({});
+  };
+
+  const handleConnectCode = () => {
+    if (!businessId) return;
+    const digits = phoneInput.replace(/\D/g, "");
+    if (digits.length < 10) {
+      toast({ title: "Número inválido", description: "Digite com DDI + DDD (ex: 5569XXXXXXXXX).", variant: "destructive" });
+      return;
+    }
+    setConnectModal({ open: true, method: "code", qr: "", pairing: "", loading: true });
+    connectMutation.mutate({ phone_number: digits });
   };
 
   return (
@@ -134,18 +155,50 @@ const WhatsAppIA = () => {
               {isConnected ? "Online" : "Offline"}
             </span>
             {!isConnected && (
-              <Button size="sm" onClick={handleConnect} disabled={connectMutation.isPending}>
-                {connectMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <QrCode className="h-4 w-4" />
-                )}
-                Conectar WhatsApp
-              </Button>
+              <span className="text-xs text-muted-foreground">Escolha um método abaixo</span>
             )}
           </div>
         </div>
       </div>
+
+      {!isConnected && (
+        <div className="rounded-lg border border-border bg-card p-5">
+          <h3 className="text-base font-semibold text-foreground mb-1">Como você quer conectar?</h3>
+          <p className="text-xs text-muted-foreground mb-4">
+            QR Code é ideal se você usa outro aparelho para escanear. O código de pareamento é ideal para configurar direto pelo próprio celular.
+          </p>
+          <Tabs defaultValue="qr">
+            <TabsList className="grid grid-cols-2 w-full max-w-md">
+              <TabsTrigger value="qr" className="gap-2"><QrCode className="h-4 w-4" />Por QR Code</TabsTrigger>
+              <TabsTrigger value="code" className="gap-2"><KeyRound className="h-4 w-4" />Por código</TabsTrigger>
+            </TabsList>
+            <TabsContent value="qr" className="pt-4">
+              <p className="text-sm text-muted-foreground mb-3">Vamos gerar um QR Code para você escanear com o WhatsApp de outro aparelho.</p>
+              <Button onClick={handleConnectQR} disabled={connectMutation.isPending}>
+                {connectMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
+                Gerar QR Code
+              </Button>
+            </TabsContent>
+            <TabsContent value="code" className="pt-4 space-y-3">
+              <div className="space-y-1.5 max-w-md">
+                <Label htmlFor="phone">Número do WhatsApp (DDI + DDD + número)</Label>
+                <Input
+                  id="phone"
+                  placeholder="5569999999999"
+                  value={phoneInput}
+                  onChange={(e) => setPhoneInput(e.target.value)}
+                  inputMode="numeric"
+                />
+                <p className="text-xs text-muted-foreground">Ex: 55 (Brasil) + 69 (DDD) + número. Apenas dígitos.</p>
+              </div>
+              <Button onClick={handleConnectCode} disabled={connectMutation.isPending} className="gap-2">
+                {connectMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Smartphone className="h-4 w-4" />}
+                Conectar por código
+              </Button>
+            </TabsContent>
+          </Tabs>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Conversations */}
@@ -205,21 +258,25 @@ const WhatsAppIA = () => {
         </div>
       </div>
 
-      <Dialog open={qrModal.open} onOpenChange={(o) => !o && setQrModal({ open: false, qr: "", loading: false })}>
+      <Dialog open={connectModal.open} onOpenChange={(o) => !o && setConnectModal({ open: false, method: "qr", qr: "", pairing: "", loading: false })}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Escaneie o QR Code</DialogTitle>
+            <DialogTitle>
+              {connectModal.method === "qr" ? "Escaneie o QR Code" : "Digite o código no WhatsApp"}
+            </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center gap-4 py-4">
-            {qrModal.loading ? (
+            {connectModal.loading ? (
               <div className="flex flex-col items-center gap-3 py-8">
                 <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Gerando QR Code...</p>
+                <p className="text-sm text-muted-foreground">
+                  {connectModal.method === "qr" ? "Gerando QR Code..." : "Gerando código..."}
+                </p>
               </div>
-            ) : qrModal.qr ? (
+            ) : connectModal.method === "qr" && connectModal.qr ? (
               <>
                 <img
-                  src={qrModal.qr.startsWith("data:") ? qrModal.qr : `data:image/png;base64,${qrModal.qr}`}
+                  src={connectModal.qr.startsWith("data:") ? connectModal.qr : `data:image/png;base64,${connectModal.qr}`}
                   alt="QR Code"
                   className="w-64 h-64 rounded-lg bg-white p-2"
                 />
@@ -227,9 +284,18 @@ const WhatsAppIA = () => {
                   Abra o WhatsApp no seu celular, vá em <strong>Aparelhos conectados</strong> e escaneie este QR Code.
                 </p>
               </>
+            ) : connectModal.method === "code" && connectModal.pairing ? (
+              <>
+                <div className="text-4xl font-mono font-bold tracking-[0.4em] px-6 py-4 rounded-lg bg-secondary text-foreground">
+                  {connectModal.pairing}
+                </div>
+                <p className="text-xs text-muted-foreground text-center max-w-[300px]">
+                  Abra o WhatsApp no celular &gt; <strong>Aparelhos conectados</strong> &gt; <strong>Conectar com número de telefone</strong> &gt; digite este código.
+                </p>
+              </>
             ) : (
               <p className="text-sm text-muted-foreground py-6 text-center">
-                Não foi possível gerar o QR Code. Tente novamente em instantes.
+                Não foi possível gerar. Tente novamente em instantes.
               </p>
             )}
           </div>
