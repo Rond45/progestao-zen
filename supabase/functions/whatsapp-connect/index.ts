@@ -32,16 +32,26 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { evolution_api_url, evolution_api_key, instance_name, business_id } = await req.json();
+    const { business_id } = await req.json();
 
-    if (!evolution_api_url || !evolution_api_key || !instance_name || !business_id) {
-      return new Response(JSON.stringify({ error: "Campos obrigatórios faltando" }), {
+    if (!business_id) {
+      return new Response(JSON.stringify({ error: "business_id é obrigatório" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    const evolution_api_url = Deno.env.get("EVOLUTION_API_URL");
+    const evolution_api_key = Deno.env.get("EVOLUTION_API_KEY");
+    if (!evolution_api_url || !evolution_api_key) {
+      return new Response(JSON.stringify({ error: "Evolution API não configurada no servidor." }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const baseUrl = evolution_api_url.replace(/\/$/, "");
+    const instance_name = `biz_${String(business_id).replace(/-/g, "")}`;
 
     // 1. Create instance
     try {
@@ -70,15 +80,16 @@ Deno.serve(async (req) => {
 
     const { error: dbError } = await supabase
       .from("whatsapp_connections")
-      .update({
-        evolution_api_url: baseUrl,
-        evolution_api_key,
-        instance_name,
-        status: qrCode ? "pending" : "pending",
-        qr_code: qrCode,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("business_id", business_id);
+      .upsert(
+        {
+          business_id,
+          instance_name,
+          status: "pending",
+          qr_code: qrCode,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "business_id" }
+      );
 
     if (dbError) {
       console.error("DB error:", dbError);
@@ -88,7 +99,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const response: any = { success: true, qr_code: qrCode };
+    const response: any = { success: true, qr_code: qrCode, instance_name };
     if (!qrCode) {
       response.message = "Instância criada. Clique em Ver QR Code para gerar.";
     }

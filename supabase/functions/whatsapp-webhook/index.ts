@@ -249,13 +249,15 @@ INSTRUÇÕES IMPORTANTES:
       .eq("id", conversation!.id);
 
     // Send reply via Evolution API
-    const baseUrl = (conn as any).evolution_api_url?.replace(/\/$/, "");
-    if (baseUrl) {
+    const evolutionUrl = Deno.env.get("EVOLUTION_API_URL");
+    const evolutionKey = Deno.env.get("EVOLUTION_API_KEY");
+    const baseUrl = evolutionUrl?.replace(/\/$/, "");
+    if (baseUrl && evolutionKey) {
       await fetch(`${baseUrl}/message/sendText/${(conn as any).instance_name}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          apikey: (conn as any).evolution_api_key,
+          apikey: evolutionKey,
         },
         body: JSON.stringify({
           number: remotePhone,
