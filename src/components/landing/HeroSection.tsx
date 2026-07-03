@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Scissors, Sparkles } from "lucide-react";
+import { ArrowRight, Scissors, Sparkles, Check } from "lucide-react";
 import heroBarbershop from "@/assets/hero-barbershop.jpg";
 import heroSalon from "@/assets/hero-salon.jpg";
 import { storeVertical, type Vertical } from "@/hooks/useVerticalTheme";
@@ -52,8 +52,29 @@ const HeroSection = () => {
               negócio
             </span>
           </h1>
-          <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-            Escolha seu segmento e comece a gerenciar com ferramentas inteligentes.
+          <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
+            Teste todos os recursos por 14 dias. Sem cartão de crédito. Sem compromisso.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
+            <Button
+              variant="emerald"
+              size="lg"
+              onClick={() => navigate("/login?signup=1")}
+            >
+              Experimentar grátis por 14 dias
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="lg" onClick={() => navigate("/login")}>
+              Já tenho conta
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-primary" /> Sem cartão de crédito</span>
+            <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-primary" /> Acesso Premium no teste</span>
+            <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-primary" /> Cancele quando quiser</span>
+          </div>
+          <p className="text-sm text-muted-foreground max-w-xl mx-auto mt-10">
+            Escolha seu segmento para conhecer o ambiente:
           </p>
         </motion.div>
 
