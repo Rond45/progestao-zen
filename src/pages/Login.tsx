@@ -28,7 +28,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(searchParams.get("signup") === "1");
   const [name, setName] = useState("");
   const [forgotPassword, setForgotPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
@@ -169,6 +169,13 @@ const Login = () => {
           <p className="text-sm text-muted-foreground">
             {isSignUp ? "Crie sua conta" : "Acesse sua conta"}
           </p>
+          {isSignUp && (
+            <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-xs text-foreground">
+              Você está iniciando seu <strong>teste grátis de 14 dias</strong> com acesso Premium.
+              <br />
+              Sem cartão de crédito. Sem compromisso.
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
