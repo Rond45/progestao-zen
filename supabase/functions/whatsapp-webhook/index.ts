@@ -185,10 +185,10 @@ INSTRUÇÕES IMPORTANTES:
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${(conn as any).openai_api_key}`,
+        Authorization: `Bearer ${Deno.env.get("OPENAI_API_KEY")}`,
       },
       body: JSON.stringify({
-        model: (conn as any).openai_model || "gpt-4o-mini",
+        model: "gpt-4o-mini",
         messages: [{ role: "system", content: systemPrompt }, ...chatHistory],
         temperature: 0.7,
         max_tokens: 500,
