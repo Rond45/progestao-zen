@@ -26,13 +26,53 @@ async function fetchQrWithRetry(baseUrl: string, apiKey: string, instanceName: s
   return null;
 }
 
+async function setInstanceWebhook(baseUrl: string, apiKey: string, instanceName: string, webhookUrl: string) {
+  try {
+    const res = await fetch(`${baseUrl}/webhook/set/${instanceName}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: apiKey },
+      body: JSON.stringify({
+        webhook: {
+          enabled: true,
+          url: webhookUrl,
+          webhookByEvents: false,
+          webhookBase64: false,
+          events: ["MESSAGES_UPSERT", "CONNECTION_UPDATE"],
+        },
+        // Fallback flat shape for older Evolution builds
+        enabled: true,
+        url: webhookUrl,
+        webhookByEvents: false,
+        events: ["MESSAGES_UPSERT", "CONNECTION_UPDATE"],
+      }),
+    });
+    const txt = await res.text();
+    console.log(`webhook/set status=${res.status}:`, txt.substring(0, 300));
+  } catch (e) {
+    console.log("webhook/set error:", e);
+  }
+}
+
+async function fetchPairingCode(baseUrl: string, apiKey: string, instanceName: string, phoneNumber: string): Promise<string | null> {
+  try {
+    const url = `${baseUrl}/instance/connect/${instanceName}?number=${encodeURIComponent(phoneNumber)}`;
+    const res = await fetch(url, { method: "GET", headers: { apikey: apiKey } });
+    const data = await res.json();
+    console.log("pairing code response:", JSON.stringify(data).substring(0, 300));
+    return data?.pairingCode || data?.code || null;
+  } catch (e) {
+    console.log("pairing code error:", e);
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { business_id } = await req.json();
+    const { business_id, phone_number } = await req.json();
 
     if (!business_id) {
       return new Response(JSON.stringify({ error: "business_id é obrigatório" }), {
@@ -69,8 +109,21 @@ Deno.serve(async (req) => {
       console.log("Instance create (may already exist):", e);
     }
 
-    // 2. Retry fetching QR Code up to 5 times with 3s delay
-    const qrCode = await fetchQrWithRetry(baseUrl, evolution_api_key, instance_name, 5);
+    // 2. Register instance webhook -> whatsapp-webhook (critical for AI to receive messages)
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!.replace(/\/$/, "");
+    const webhookUrl = `${supabaseUrl}/functions/v1/whatsapp-webhook`;
+    await setInstanceWebhook(baseUrl, evolution_api_key, instance_name, webhookUrl);
+
+    // 3. Pairing code path if phone_number was provided
+    let pairingCode: string | null = null;
+    let qrCode: string | null = null;
+    if (phone_number) {
+      const digits = String(phone_number).replace(/\D/g, "");
+      pairingCode = await fetchPairingCode(baseUrl, evolution_api_key, instance_name, digits);
+    } else {
+      // QR path: retry fetching QR Code up to 5 times with 3s delay
+      qrCode = await fetchQrWithRetry(baseUrl, evolution_api_key, instance_name, 5);
+    }
 
     // 3. Save to DB
     const supabase = createClient(
@@ -86,6 +139,7 @@ Deno.serve(async (req) => {
           instance_name,
           status: "pending",
           qr_code: qrCode,
+          phone_number: phone_number ? String(phone_number).replace(/\D/g, "") : null,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "business_id" }
@@ -99,9 +153,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const response: any = { success: true, qr_code: qrCode, instance_name };
-    if (!qrCode) {
-      response.message = "Instância criada. Clique em Ver QR Code para gerar.";
+    const response: any = { success: true, qr_code: qrCode, pairing_code: pairingCode, instance_name };
+    if (!qrCode && !pairingCode) {
+      response.message = "Instância criada. Tente novamente em instantes.";
     }
 
     return new Response(JSON.stringify(response), {
