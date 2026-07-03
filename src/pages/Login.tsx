@@ -40,6 +40,12 @@ const Login = () => {
     if (msg.includes("User already registered")) return "Este e-mail já está cadastrado. Tente fazer login.";
     if (msg.includes("at least 6 characters")) return "A senha deve ter pelo menos 6 caracteres.";
     if (msg.includes("Too many requests") || msg.includes("rate limit")) return "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
+    if (msg.includes("weak") || msg.includes("pwned") || msg.includes("known to be weak")) {
+      return "Esta senha é muito comum e apareceu em vazamentos públicos. Escolha uma senha mais forte (misture letras maiúsculas, minúsculas, números e símbolos).";
+    }
+    if (msg.includes("Signups not allowed") || msg.includes("signup is disabled")) return "Cadastros estão temporariamente desativados. Tente novamente em instantes.";
+    if (msg.includes("Unable to validate email address") || msg.includes("invalid format")) return "E-mail inválido. Confira o endereço digitado.";
+    if (msg.includes("Password should be")) return "Senha muito curta. Use pelo menos 6 caracteres.";
     return "Ocorreu um erro. Tente novamente.";
   };
 
