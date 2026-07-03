@@ -45,7 +45,7 @@ const Login = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-        redirectTo: window.location.origin + '/login',
+        redirectTo: window.location.origin + '/redefinir-senha',
       });
       if (error) throw error;
       toast({ title: "Link enviado", description: "Enviamos um link de recuperação para o seu e-mail." });
