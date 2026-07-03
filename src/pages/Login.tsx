@@ -67,6 +67,20 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
+      // Se havia aceite pendente (cadastro com confirmação por e-mail), grava agora.
+      const pending = localStorage.getItem("pendingAceiteLegal");
+      if (pending) {
+        try {
+          const parsed = JSON.parse(pending);
+          supabase.from("aceites_legais").insert({
+            user_id: user.id,
+            versao_termos: parsed.versao_termos ?? TERMOS_VERSAO,
+            versao_privacidade: parsed.versao_privacidade ?? PRIVACIDADE_VERSAO,
+          }).then(() => localStorage.removeItem("pendingAceiteLegal"));
+        } catch {
+          localStorage.removeItem("pendingAceiteLegal");
+        }
+      }
       const selectedPlan = localStorage.getItem("selectedPlan");
       if (selectedPlan) {
         localStorage.removeItem("selectedPlan");
