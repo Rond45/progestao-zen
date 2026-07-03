@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Scissors, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import HeroSection from "@/components/landing/HeroSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
 import VerticalsSection from "@/components/landing/VerticalsSection";
