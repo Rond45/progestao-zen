@@ -27,6 +27,7 @@ import Privacidade from "./pages/Privacidade";
 import Suporte from "./pages/Suporte";
 import Planos from "./pages/Planos";
 import PlanosPublico from "./pages/PlanosPublico";
+import RedefinirSenha from "./pages/RedefinirSenha";
 import ClienteDetalhe from "./pages/ClienteDetalhe";
 import { useVerticalTheme } from "@/hooks/useVerticalTheme";
 import AdminLogin from "./pages/AdminLogin";
@@ -52,6 +53,7 @@ const App = () => {
                                                               <Route path="/" element={<Landing />} />
                                                               <Route path="/login" element={<Login />} />
                                                               <Route path="/registro" element={<Navigate to="/login" replace />} />
+                                                              <Route path="/redefinir-senha" element={<RedefinirSenha />} />
                                                 
                                                   {/* Páginas institucionais */}
                                                               <Route path="/termos" element={<Termos />} />
