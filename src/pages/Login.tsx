@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { TERMOS_VERSAO, PRIVACIDADE_VERSAO } from "@/lib/legalVersions";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -30,6 +32,7 @@ const Login = () => {
   const [name, setName] = useState("");
   const [forgotPassword, setForgotPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const translateError = (msg: string): string => {
     if (msg.includes("Invalid login credentials")) return "E-mail ou senha incorretos.";
@@ -64,6 +67,20 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
+      // Se havia aceite pendente (cadastro com confirmação por e-mail), grava agora.
+      const pending = localStorage.getItem("pendingAceiteLegal");
+      if (pending) {
+        try {
+          const parsed = JSON.parse(pending);
+          supabase.from("aceites_legais").insert({
+            user_id: user.id,
+            versao_termos: parsed.versao_termos ?? TERMOS_VERSAO,
+            versao_privacidade: parsed.versao_privacidade ?? PRIVACIDADE_VERSAO,
+          }).then(() => localStorage.removeItem("pendingAceiteLegal"));
+        } catch {
+          localStorage.removeItem("pendingAceiteLegal");
+        }
+      }
       const selectedPlan = localStorage.getItem("selectedPlan");
       if (selectedPlan) {
         localStorage.removeItem("selectedPlan");
@@ -80,6 +97,11 @@ const Login = () => {
 
     try {
       if (isSignUp) {
+        if (!acceptedTerms) {
+          toast({ title: "Aceite necessário", description: "É preciso aceitar os Termos de Uso e a Política de Privacidade.", variant: "destructive" });
+          setLoading(false);
+          return;
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -91,6 +113,22 @@ const Login = () => {
           },
         });
         if (error) throw error;
+        // Registra o aceite. Se ainda não há sessão (email confirmation), tenta gravar em background após login.
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const uid = sessionData.session?.user?.id;
+          if (uid) {
+            await supabase.from("aceites_legais").insert({
+              user_id: uid,
+              versao_termos: TERMOS_VERSAO,
+              versao_privacidade: PRIVACIDADE_VERSAO,
+            });
+          } else {
+            localStorage.setItem("pendingAceiteLegal", JSON.stringify({ versao_termos: TERMOS_VERSAO, versao_privacidade: PRIVACIDADE_VERSAO }));
+          }
+        } catch (e) {
+          console.error("Falha ao registrar aceite legal:", e);
+        }
         toast({
           title: "Conta criada",
           description: "Verifique seu e-mail para confirmar a conta.",
@@ -183,6 +221,23 @@ const Login = () => {
             </div>
           </div>
 
+          {isSignUp && (
+            <div className="flex items-start gap-2 pt-1">
+              <Checkbox
+                id="accept-terms"
+                checked={acceptedTerms}
+                onCheckedChange={(v) => setAcceptedTerms(v === true)}
+                className="mt-0.5"
+              />
+              <Label htmlFor="accept-terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                Li e concordo com os{" "}
+                <a href="/termos" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Termos de Uso</a>
+                {" "}e a{" "}
+                <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Política de Privacidade</a>.
+              </Label>
+            </div>
+          )}
+
           {!isSignUp && !forgotPassword && (
             <button type="button" onClick={() => setForgotPassword(true)} className="text-xs text-primary hover:underline">
               Esqueci minha senha
@@ -210,7 +265,7 @@ const Login = () => {
             </div>
           )}
 
-          <Button type="submit" variant="emerald" className="w-full" size="lg" disabled={loading}>
+          <Button type="submit" variant="emerald" className="w-full" size="lg" disabled={loading || (isSignUp && !acceptedTerms)}>
             {loading ? "Aguarde..." : isSignUp ? "Criar conta" : "Entrar"}
           </Button>
         </form>

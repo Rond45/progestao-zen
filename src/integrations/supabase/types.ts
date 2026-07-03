@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      aceites_legais: {
+        Row: {
+          created_at: string
+          data_aceite: string
+          id: string
+          ip: string | null
+          user_id: string
+          versao_privacidade: string
+          versao_termos: string
+        }
+        Insert: {
+          created_at?: string
+          data_aceite?: string
+          id?: string
+          ip?: string | null
+          user_id: string
+          versao_privacidade: string
+          versao_termos: string
+        }
+        Update: {
+          created_at?: string
+          data_aceite?: string
+          id?: string
+          ip?: string | null
+          user_id?: string
+          versao_privacidade?: string
+          versao_termos?: string
+        }
+        Relationships: []
+      }
       antifuro_policies: {
         Row: {
           business_id: string
