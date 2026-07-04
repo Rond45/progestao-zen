@@ -225,6 +225,32 @@
   }
 }
 
+/* Admin scope: force dark inputs regardless of light theme rules above */
+@layer utilities {
+  .admin-scope input,
+  .admin-scope textarea,
+  .admin-scope select,
+  .admin-scope input:not(:placeholder-shown),
+  .admin-scope textarea:not(:placeholder-shown) {
+    background-color: hsl(240 6% 10%) !important; /* zinc-950 */
+    color: hsl(0 0% 96%) !important; /* zinc-100 */
+    border-color: hsl(240 5% 20%) !important; /* zinc-800 */
+    caret-color: hsl(0 0% 96%);
+  }
+  .admin-scope input::placeholder,
+  .admin-scope textarea::placeholder {
+    color: hsl(240 4% 46%) !important; /* zinc-500 */
+    opacity: 1;
+  }
+  .admin-scope input:-webkit-autofill,
+  .admin-scope input:-webkit-autofill:hover,
+  .admin-scope input:-webkit-autofill:focus {
+    -webkit-text-fill-color: hsl(0 0% 96%) !important;
+    -webkit-box-shadow: 0 0 0 1000px hsl(240 6% 10%) inset !important;
+    caret-color: hsl(0 0% 96%);
+  }
+}
+
 @layer utilities {
   .emerald-glow {
     box-shadow: 0 0 20px -5px hsl(40 55% 51% / 0.25);
