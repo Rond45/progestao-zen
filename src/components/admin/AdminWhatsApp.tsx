@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, QrCode, Wifi, WifiOff, Plus, Copy, MessageCircle } from "lucide-react";
+import { Loader2, QrCode, Wifi, WifiOff, Plus, Copy, MessageCircle, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { adminCall } from "./AdminOverview";
 
