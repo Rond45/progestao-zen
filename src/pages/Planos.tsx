@@ -9,7 +9,16 @@ import { toast } from "sonner";
 import PagamentoModal from "@/components/pagamento/PagamentoModal";
 import { usePlansConfig } from "@/hooks/usePlansConfig";
 
-const BASE_PLANS = [
+type BasePlan = {
+  id: "basico" | "pro" | "premium";
+  name: string;
+  description: string;
+  icon: any;
+  popular?: boolean;
+  baseFeatures: string[];
+};
+
+const BASE_PLANS: BasePlan[] = [
   {
     id: "basico",
     name: "Básico",
@@ -46,7 +55,7 @@ const BASE_PLANS = [
       "Relatórios avançados",
     ],
   },
-] as const;
+];
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   active: { label: "Ativo", variant: "default" },
