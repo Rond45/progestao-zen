@@ -22,6 +22,8 @@ import { useBusiness } from "@/hooks/useBusiness";
 import { usePlan } from "@/hooks/usePlan";
 import { ROUTE_MIN_PLAN, type PlanName } from "@/lib/planAccess";
 import VencimentoGate from "@/components/pagamento/VencimentoGate";
+import AnuncioPopup from "@/components/AnuncioPopup";
+import AvisoGlobalBanner from "@/components/AvisoGlobalBanner";
 
 const navItems: { to: string; icon: any; label: string; end?: boolean; minPlan?: PlanName }[] = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Painel", end: true },
@@ -137,6 +139,7 @@ const DashboardLayout = () => {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
+        <AvisoGlobalBanner />
         <header className="h-16 border-b border-border flex items-center justify-between px-4 lg:px-6 bg-card shadow-sm sticky top-0 z-30">
           <button
             className="lg:hidden text-muted-foreground hover:text-foreground"
@@ -155,6 +158,7 @@ const DashboardLayout = () => {
 
         <main className="flex-1 p-4 lg:p-6 overflow-auto bg-muted/40">
           <VencimentoGate />
+          <AnuncioPopup />
           <Outlet />
         </main>
       </div>
