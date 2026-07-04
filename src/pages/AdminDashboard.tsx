@@ -33,7 +33,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex">
+    <div className="admin-scope min-h-screen bg-zinc-950 flex">
       {/* Sidebar */}
       <aside className="w-56 border-r border-zinc-800 flex flex-col">
         <div className="p-4 border-b border-zinc-800">
