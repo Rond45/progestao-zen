@@ -57,8 +57,9 @@ const AdminLogin = () => {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
-            <Label className="text-zinc-400 text-sm">E-mail</Label>
+            <Label htmlFor="admin-email" className="text-zinc-400 text-sm">E-mail</Label>
             <Input
+              id="admin-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -67,9 +68,10 @@ const AdminLogin = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-zinc-400 text-sm">Senha</Label>
+            <Label htmlFor="admin-password" className="text-zinc-400 text-sm">Senha</Label>
             <div className="relative">
               <Input
+                id="admin-password"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
