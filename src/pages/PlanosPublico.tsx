@@ -5,32 +5,31 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlansConfig } from "@/hooks/usePlansConfig";
 
-const plans = [
+type BasePlan = { id: "basico" | "pro" | "premium"; name: string; description: string; icon: any; popular?: boolean; baseFeatures: string[] };
+
+const basePlans: BasePlan[] = [
   {
     id: "basico",
     name: "Básico",
-    price: "39",
     description: "Ideal para profissionais autônomos",
     icon: Star,
-    features: [
+    baseFeatures: [
       "Agenda e agendamento",
       "Cadastro de clientes",
       "Serviços e preços",
       "Financeiro (caixa)",
-      "Até 2 profissionais",
     ],
   },
   {
     id: "pro",
     name: "Pro",
-    price: "79",
     description: "Para equipes em crescimento",
     icon: Zap,
     popular: true,
-    features: [
+    baseFeatures: [
       "Tudo do Básico",
-      "Até 4 profissionais",
       "WhatsApp IA",
       "Comissões automáticas",
     ],
@@ -38,12 +37,10 @@ const plans = [
   {
     id: "premium",
     name: "Premium",
-    price: "149",
     description: "Controle total do seu negócio",
     icon: Crown,
-    features: [
+    baseFeatures: [
       "Tudo do Pro",
-      "Profissionais ilimitados",
       "Produtos (estoque)",
       "Vendas e Consumo",
       "Relatórios avançados",
@@ -63,6 +60,12 @@ const fadeUp = {
 const PlanosPublico = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const plansCfg = usePlansConfig();
+  const plans = basePlans.map((p) => {
+    const cfg = plansCfg[p.id];
+    const profsLabel = cfg.profs === "ilimitado" ? "Profissionais ilimitados" : `Até ${cfg.profs} profissionais`;
+    return { ...p, price: cfg.price, features: [...p.baseFeatures, profsLabel] };
+  });
 
   // Apply landing theme on public plans page too
   useEffect(() => {

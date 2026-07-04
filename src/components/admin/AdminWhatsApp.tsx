@@ -4,9 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Eye, EyeOff, Loader2, QrCode, Wifi, WifiOff, Plus, Copy, Mail, MessageCircle } from "lucide-react";
+import { Loader2, QrCode, Wifi, WifiOff, Plus, Copy, MessageCircle, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { adminCall } from "./AdminOverview";
 
@@ -22,13 +21,9 @@ const AdminWhatsApp = () => {
     queryFn: () => adminCall("get-platform-config"),
   });
 
-  const [showApiKey, setShowApiKey] = useState(false);
-  const [showOpenAI, setShowOpenAI] = useState(false);
   const [globalForm, setGlobalForm] = useState({
-    evolution_api_url: "",
-    evolution_api_key: "",
-    openai_api_key: "",
-    openai_model: "gpt-4o-mini",
+    default_ai_name: "",
+    default_ai_tone: "",
     default_system_prompt: DEFAULT_PROMPT,
   });
 
@@ -36,10 +31,8 @@ const AdminWhatsApp = () => {
     if (configData?.config) {
       const cfg = configData.config as Record<string, string>;
       setGlobalForm({
-        evolution_api_url: cfg.evolution_api_url || "",
-        evolution_api_key: cfg.evolution_api_key || "",
-        openai_api_key: cfg.openai_api_key || "",
-        openai_model: cfg.openai_model || "gpt-4o-mini",
+        default_ai_name: cfg.default_ai_name || "Atendente",
+        default_ai_tone: cfg.default_ai_tone || "Cordial, objetivo e profissional",
         default_system_prompt: cfg.default_system_prompt || DEFAULT_PROMPT,
       });
     }
@@ -65,38 +58,17 @@ const AdminWhatsApp = () => {
   });
   const qrImgRef = useRef<HTMLImageElement>(null);
 
-  // Fetch QR Code directly from Evolution API
+  // Fetch QR Code via server-side create-instance (uses centralized secrets)
   const fetchQRCode = async (inst: any) => {
-    const cfg = configData?.config as Record<string, string> | undefined;
-    const apiUrl = inst.evolution_api_url || cfg?.evolution_api_url;
-    const apiKey = inst.evolution_api_key || cfg?.evolution_api_key;
-    const instanceName = inst.instance_name;
-
-    if (!apiUrl || !apiKey || !instanceName) {
-      toast({ title: "Erro", description: "Dados da Evolution API não configurados.", variant: "destructive" });
-      return;
-    }
-
-    setQrModal({ open: true, qr: "", name: inst.business_name || instanceName, businessId: inst.business_id, loading: true });
-
+    setQrModal({ open: true, qr: "", name: inst.business_name || inst.instance_name, businessId: inst.business_id, loading: true });
     try {
-      const baseUrl = apiUrl.replace(/\/$/, "");
-      const res = await fetch(`${baseUrl}/instance/connect/${instanceName}`, {
-        method: "GET",
-        headers: { apikey: apiKey },
-      });
-      const data = await res.json();
-      const qr = data?.base64 || data?.qrcode?.base64 || data?.code || null;
-
-      if (qr && typeof qr === "string" && qr.length > 50) {
-        setQrModal(prev => ({ ...prev, qr, loading: false }));
-      } else {
-        setQrModal(prev => ({ ...prev, qr: "", loading: false }));
-        toast({ title: "QR Code indisponível", description: "WhatsApp já conectado ou QR Code expirado. Clique em Reconectar para gerar um novo." });
-      }
+      const data = await adminCall("create-instance", { business_id: inst.business_id });
+      const qr = data?.qr_code || "";
+      setQrModal(prev => ({ ...prev, qr, loading: false }));
+      if (!qr) toast({ title: data?.message || "QR Code indisponível no momento." });
     } catch (e: any) {
       setQrModal(prev => ({ ...prev, loading: false }));
-      toast({ title: "Erro ao buscar QR Code", description: e.message, variant: "destructive" });
+      toast({ title: "Erro", description: e.message, variant: "destructive" });
     }
   };
 
@@ -129,73 +101,36 @@ const AdminWhatsApp = () => {
 
       {/* SEÇÃO A — Configurações Globais */}
       <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5 space-y-4">
-        <h2 className="text-sm font-semibold text-zinc-200">Configurações Globais</h2>
+        <div>
+          <h2 className="text-sm font-semibold text-zinc-200">Configuração Central da IA</h2>
+          <p className="text-[11px] text-zinc-500 mt-0.5">
+            Credenciais técnicas (Evolution API, OpenAI) são gerenciadas via secrets do servidor e não aparecem aqui.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <Label className="text-xs text-zinc-400">URL da Evolution API</Label>
+            <Label className="text-xs text-zinc-400">Nome padrão da IA</Label>
             <Input
-              placeholder="https://minha-evolution-api.com"
-              value={globalForm.evolution_api_url}
-              onChange={(e) => setGlobalForm({ ...globalForm, evolution_api_url: e.target.value })}
+              placeholder="Ex: Sofia, Bruno, Assistente"
+              value={globalForm.default_ai_name}
+              onChange={(e) => setGlobalForm({ ...globalForm, default_ai_name: e.target.value })}
               className="bg-zinc-950 border-zinc-800 text-zinc-100"
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs text-zinc-400">API Key da Evolution API</Label>
-            <div className="relative">
-              <Input
-                type={showApiKey ? "text" : "password"}
-                value={globalForm.evolution_api_key}
-                onChange={(e) => setGlobalForm({ ...globalForm, evolution_api_key: e.target.value })}
-                className="bg-zinc-950 border-zinc-800 text-zinc-100 pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowApiKey(!showApiKey)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-              >
-                {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <Label className="text-xs text-zinc-400">Chave da API OpenAI</Label>
-            <div className="relative">
-              <Input
-                type={showOpenAI ? "text" : "password"}
-                value={globalForm.openai_api_key}
-                onChange={(e) => setGlobalForm({ ...globalForm, openai_api_key: e.target.value })}
-                className="bg-zinc-950 border-zinc-800 text-zinc-100 pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowOpenAI(!showOpenAI)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-              >
-                {showOpenAI ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-zinc-400">Modelo padrão</Label>
-            <Select value={globalForm.openai_model} onValueChange={(v) => setGlobalForm({ ...globalForm, openai_model: v })}>
-              <SelectTrigger className="bg-zinc-950 border-zinc-800 text-zinc-100">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="gpt-4o-mini">gpt-4o-mini (Econômico)</SelectItem>
-                <SelectItem value="gpt-4o">gpt-4o (Avançado)</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label className="text-xs text-zinc-400">Tom de atendimento padrão</Label>
+            <Input
+              placeholder="Ex: Cordial, objetivo e profissional"
+              value={globalForm.default_ai_tone}
+              onChange={(e) => setGlobalForm({ ...globalForm, default_ai_tone: e.target.value })}
+              className="bg-zinc-950 border-zinc-800 text-zinc-100"
+            />
           </div>
         </div>
 
         <div className="space-y-1">
-          <Label className="text-xs text-zinc-400">Prompt base do sistema</Label>
+          <Label className="text-xs text-zinc-400">Prompt padrão global</Label>
           <Textarea
             value={globalForm.default_system_prompt}
             onChange={(e) => setGlobalForm({ ...globalForm, default_system_prompt: e.target.value })}

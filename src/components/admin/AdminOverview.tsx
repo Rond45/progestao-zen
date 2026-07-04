@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Wifi, CalendarPlus, PieChart } from "lucide-react";
+import { Building2, Wifi, CalendarPlus, PieChart, Calendar, MessageSquare, UserCircle2, Scissors } from "lucide-react";
 
 export const adminCall = async (action: string, params: Record<string, any> = {}) => {
   const { data, error } = await supabase.functions.invoke("admin-api", {
@@ -27,6 +27,10 @@ const AdminOverview = () => {
       icon: PieChart,
       color: "text-purple-400",
     },
+    { label: "Agendamentos criados", value: data?.appointments_total ?? "—", icon: Calendar, color: "text-cyan-400" },
+    { label: "Mensagens processadas (IA)", value: data?.messages_total ?? "—", icon: MessageSquare, color: "text-pink-400" },
+    { label: "Clientes finais cadastrados", value: data?.clients_total ?? "—", icon: UserCircle2, color: "text-indigo-400" },
+    { label: "Barbearias vs Salões", value: data ? `${data.barbearias} / ${data.saloes}` : "—", icon: Scissors, color: "text-orange-400" },
   ];
 
   return (

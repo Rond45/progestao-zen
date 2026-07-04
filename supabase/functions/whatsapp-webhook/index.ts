@@ -5,6 +5,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function renderPromptTemplate(
+  tpl: string,
+  vars: Record<string, string>,
+): string {
+  return tpl.replace(/\{([a-zA-Z_]+)\}/g, (_, k) => vars[k] ?? "");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -79,6 +86,7 @@ Deno.serve(async (req) => {
       { data: services },
       { data: professionals },
       { data: appointments },
+      { data: platformCfgRows },
     ] = await Promise.all([
       supabase.from("businesses").select("*").eq("id", businessId).single(),
       supabase.from("services").select("*").eq("business_id", businessId).eq("active", true),
@@ -89,7 +97,11 @@ Deno.serve(async (req) => {
         .lte("starts_at", new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString())
         .neq("status", "cancelled")
         .order("starts_at"),
+      supabase.from("platform_config").select("key, value"),
     ]);
+
+    const platformCfg: Record<string, string> = {};
+    (platformCfgRows ?? []).forEach((r: any) => { platformCfg[r.key] = r.value; });
 
     // Find or create client by phone
     let { data: client } = await supabase
@@ -99,14 +111,34 @@ Deno.serve(async (req) => {
       .eq("phone", remotePhone)
       .maybeSingle();
 
+    let isFirstContact = false;
     if (!client) {
+      isFirstContact = true;
       const { data: newClient } = await supabase
         .from("clients")
-        .insert({ business_id: businessId, name: `WhatsApp ${remotePhone}`, phone: remotePhone })
+        .insert({ business_id: businessId, name: "", phone: remotePhone })
         .select()
         .single();
       client = newClient;
     }
+
+    // Determine if the client already has a real name (not empty, not the legacy placeholder)
+    const hasRealName =
+      !!client?.name &&
+      client.name.trim() !== "" &&
+      !/^WhatsApp\s/i.test(client.name);
+
+    // Fetch this client's appointment history (past & future) for context
+    const { data: clientHistory } = await supabase
+      .from("appointments")
+      .select("starts_at, status, services(name), professionals(name)")
+      .eq("business_id", businessId)
+      .eq("client_id", client!.id)
+      .order("starts_at", { ascending: false })
+      .limit(10);
+
+    const historyCount = clientHistory?.length ?? 0;
+    const isReturning = historyCount > 0 || (hasRealName && !isFirstContact);
 
     // Get or create conversation
     let { data: conversation } = await supabase
@@ -142,6 +174,20 @@ Deno.serve(async (req) => {
       from_phone: remotePhone,
     });
 
+    // Try to auto-detect a name in this message if we still don't have one
+    if (!hasRealName) {
+      const nameMatch = messageText.match(
+        /(?:meu\s+nome\s+(?:e|é|eh)|me\s+chamo|sou\s+o|sou\s+a|aqui\s+e|aqui\s+é)\s+([A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s]{1,40})/i,
+      );
+      if (nameMatch) {
+        const detected = nameMatch[1].trim().split(/\s+/).slice(0, 3).join(" ");
+        if (detected.length >= 2) {
+          await supabase.from("clients").update({ name: detected }).eq("id", client!.id);
+          client!.name = detected;
+        }
+      }
+    }
+
     // Build system prompt
     const servicesText = services?.map((s: any) => `- ${s.name}: R$ ${(s.price_cents / 100).toFixed(2)} (${s.duration_minutes}min)`).join("\n") || "Nenhum serviço cadastrado";
     const prosText = professionals?.map((p: any) => `- ${p.name} (${p.specialty || "Geral"})`).join("\n") || "Nenhum profissional cadastrado";
@@ -150,16 +196,60 @@ Deno.serve(async (req) => {
       return `- ${dt.toLocaleDateString("pt-BR")} ${dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} - ${a.services?.name} com ${a.professionals?.name} (${a.clients?.name})`;
     }).join("\n") || "Nenhum agendamento";
 
-    const systemPrompt = `${(conn as any).system_prompt || "Você é um atendente virtual simpático e profissional."}
+    const historyText = (clientHistory ?? [])
+      .map((h: any) => {
+        const dt = new Date(h.starts_at);
+        return `- ${dt.toLocaleDateString("pt-BR")} ${dt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} - ${h.services?.name ?? "-"} com ${h.professionals?.name ?? "-"} (${h.status})`;
+      })
+      .join("\n") || "Sem histórico anterior.";
+
+    const aiName = (conn as any).ai_name || platformCfg.default_ai_name || "Atendente";
+    const workingHours =
+      (conn as any).working_hours ||
+      `${business?.opening_time || "09:00"} às ${business?.closing_time || "19:00"}`;
+    const servicesInfo = (conn as any).services_info || servicesText;
+
+    // Global default prompt from platform_config (template with variables)
+    const globalTemplate =
+      platformCfg.default_system_prompt ||
+      "Você é {ai_name}, atendente virtual do {nome_estabelecimento}. Responda em português brasileiro, de forma cordial e objetiva.";
+
+    const baseGlobal = renderPromptTemplate(globalTemplate, {
+      ai_name: aiName,
+      nome_estabelecimento: business?.name || "Estabelecimento",
+      working_hours: workingHours,
+      services_info: servicesInfo,
+    });
+
+    const perBusinessTone = (conn as any).system_prompt || "";
+
+    const clientBlock = `DADOS DO CLIENTE:
+Nome: ${hasRealName ? client!.name : "(desconhecido — pergunte de forma educada)"}
+Situação: ${isReturning ? "CLIENTE RECORRENTE" : "PRIMEIRO CONTATO"}
+Total de agendamentos anteriores: ${historyCount}
+
+HISTÓRICO DE AGENDAMENTOS DESTE CLIENTE:
+${historyText}`;
+
+    const behaviorRules = isReturning
+      ? `- Cumprimente o cliente pelo nome (${hasRealName ? client!.name : "quando descobrir"}).
+- Não peça o nome novamente se já souber.
+- Sugira retomar um serviço frequente do histórico quando fizer sentido.`
+      : `- É o PRIMEIRO CONTATO deste número. Apresente-se: "Olá! Eu sou ${aiName}, atendente virtual da ${business?.name || "loja"}."
+- Pergunte de forma educada o nome do cliente antes de seguir.
+- Assim que o cliente informar o nome, use-o na conversa. O sistema atualiza o cadastro automaticamente.`;
+
+    const systemPrompt = `${baseGlobal}
+${perBusinessTone ? `\nESTILO DO ESTABELECIMENTO:\n${perBusinessTone}\n` : ""}
 
 DADOS DO ESTABELECIMENTO:
 Nome: ${business?.name || "Estabelecimento"}
 Telefone: ${business?.phone || "Não informado"}
 Endereço: ${business?.address || "Não informado"}
-Horário: ${(conn as any).working_hours || `${business?.opening_time || "09:00"} às ${business?.closing_time || "19:00"}`}
+Horário: ${workingHours}
 
 SERVIÇOS E PREÇOS:
-${(conn as any).services_info || servicesText}
+${servicesInfo}
 
 PROFISSIONAIS DISPONÍVEIS:
 ${prosText}
@@ -167,8 +257,14 @@ ${prosText}
 AGENDA DOS PRÓXIMOS 7 DIAS (horários já ocupados):
 ${aptsText}
 
+${clientBlock}
+
+INSTRUÇÕES DE COMPORTAMENTO PARA ESTE CLIENTE:
+${behaviorRules}
+
 INSTRUÇÕES IMPORTANTES:
-- Se o cliente quiser agendar, pergunte: serviço desejado, profissional preferido, data e horário.
+- Ao invés de fazer perguntas abertas, ofereça 2 ou 3 opções concretas quando possível (ex: horários disponíveis reais com base na agenda acima).
+- Se o cliente quiser agendar, colete: serviço desejado, profissional preferido, data e horário.
 - Confirme todos os dados antes de finalizar.
 - Para confirmar agendamento, responda EXATAMENTE com: [AGENDAR] serviço | profissional | data (YYYY-MM-DD) | horário (HH:MM)
 - Hoje é ${new Date().toLocaleDateString("pt-BR")}.`;

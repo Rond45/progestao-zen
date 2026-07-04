@@ -1,16 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3, Users, MessageSquare, LogOut } from "lucide-react";
+import { BarChart3, Users, MessageSquare, LogOut, Megaphone, Image, CreditCard, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminOverview from "@/components/admin/AdminOverview";
 import AdminClients from "@/components/admin/AdminClients";
 import AdminWhatsApp from "@/components/admin/AdminWhatsApp";
+import AdminAnuncios from "@/components/admin/AdminAnuncios";
+import AdminAssinaturas from "@/components/admin/AdminAssinaturas";
+import AdminAvisos from "@/components/admin/AdminAvisos";
+import AdminPlanos from "@/components/admin/AdminPlanos";
 
 const tabs = [
   { id: "overview", label: "Visão Geral", icon: BarChart3 },
   { id: "clients", label: "Clientes", icon: Users },
   { id: "whatsapp", label: "WhatsApp IA", icon: MessageSquare },
+  { id: "anuncios", label: "Anúncios", icon: Image },
+  { id: "assinaturas", label: "Assinaturas", icon: CreditCard },
+  { id: "avisos", label: "Avisos", icon: Megaphone },
+  { id: "planos", label: "Planos", icon: Package },
 ] as const;
 
 type TabId = (typeof tabs)[number]["id"];
@@ -65,6 +73,10 @@ const AdminDashboard = () => {
         {activeTab === "overview" && <AdminOverview />}
         {activeTab === "clients" && <AdminClients />}
         {activeTab === "whatsapp" && <AdminWhatsApp />}
+        {activeTab === "anuncios" && <AdminAnuncios />}
+        {activeTab === "assinaturas" && <AdminAssinaturas />}
+        {activeTab === "avisos" && <AdminAvisos />}
+        {activeTab === "planos" && <AdminPlanos />}
       </main>
     </div>
   );

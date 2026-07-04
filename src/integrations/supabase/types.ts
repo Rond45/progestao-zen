@@ -82,6 +82,39 @@ export type Database = {
           },
         ]
       }
+      anuncios: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          imagem_url: string
+          link_checkout: string | null
+          segmento: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          imagem_url: string
+          link_checkout?: string | null
+          segmento: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          imagem_url?: string
+          link_checkout?: string | null
+          segmento?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           antifuro_accepted: boolean
@@ -158,6 +191,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      avisos_globais: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          mensagem: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          mensagem: string
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          mensagem?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       businesses: {
         Row: {
