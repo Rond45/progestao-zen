@@ -7,32 +7,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import PagamentoModal from "@/components/pagamento/PagamentoModal";
+import { usePlansConfig } from "@/hooks/usePlansConfig";
 
-const PLANS = [
+const BASE_PLANS = [
   {
     id: "basico",
     name: "Básico",
-    price: "39",
     description: "Ideal para profissionais autônomos",
     icon: Star,
-    features: [
+    baseFeatures: [
       "Agenda e agendamento",
       "Cadastro de clientes",
       "Serviços e preços",
       "Financeiro (caixa)",
-      "Até 2 profissionais",
     ],
   },
   {
     id: "pro",
     name: "Pro",
-    price: "79",
     description: "Para equipes em crescimento",
     icon: Zap,
     popular: true,
-    features: [
+    baseFeatures: [
       "Tudo do Básico",
-      "Até 4 profissionais",
       "WhatsApp IA",
       "Comissões automáticas",
     ],
@@ -40,18 +37,16 @@ const PLANS = [
   {
     id: "premium",
     name: "Premium",
-    price: "149",
     description: "Controle total do seu negócio",
     icon: Crown,
-    features: [
+    baseFeatures: [
       "Tudo do Pro",
-      "Profissionais ilimitados",
       "Produtos (estoque)",
       "Vendas e Consumo",
       "Relatórios avançados",
     ],
   },
-];
+] as const;
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   active: { label: "Ativo", variant: "default" },
@@ -69,6 +64,13 @@ const Planos = () => {
   const [loading, setLoading] = useState(true);
   const [modalPlan, setModalPlan] = useState<"basico" | "pro" | "premium" | null>(null);
   const autoCheckoutTriggered = useRef(false);
+  const plansCfg = usePlansConfig();
+
+  const PLANS = BASE_PLANS.map((p) => {
+    const cfg = plansCfg[p.id as keyof typeof plansCfg];
+    const profsLabel = cfg.profs === "ilimitado" ? "Profissionais ilimitados" : `Até ${cfg.profs} profissionais`;
+    return { ...p, price: cfg.price, features: [...p.baseFeatures, profsLabel] };
+  });
 
   useEffect(() => {
     const status = searchParams.get("status");
@@ -84,7 +86,7 @@ const Planos = () => {
     if (!user || loading || autoCheckoutTriggered.current) return;
     const planParam = searchParams.get("plan");
     if (!planParam) return;
-    const plan = PLANS.find((p) => p.id === planParam);
+    const plan = BASE_PLANS.find((p) => p.id === planParam);
     if (plan) {
       autoCheckoutTriggered.current = true;
       setSearchParams({}, { replace: true });
