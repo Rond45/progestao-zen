@@ -102,15 +102,13 @@ const PlanosPublico = () => {
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div
-            className="flex items-center gap-2 cursor-pointer"
+          <button
+            className="flex items-center cursor-pointer"
             onClick={() => navigate("/")}
+            aria-label="ProGestão+"
           >
-            <Scissors className="h-5 w-5 text-primary" />
-            <span className="text-lg font-bold text-foreground tracking-tight">
-              ProGestão<span className="text-primary">+</span>
-            </span>
-          </div>
+            <Logo height="h-9" />
+          </button>
           <Button variant="ghost" size="sm" onClick={() => navigate("/login")}>
             Entrar
           </Button>

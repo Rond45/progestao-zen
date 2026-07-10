@@ -100,11 +100,8 @@ const RedefinirSenha = () => {
             <ArrowLeft className="h-4 w-4" />
             Voltar ao login
           </button>
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Scissors className="h-5 w-5 text-primary" />
-            <span className="text-xl font-bold text-foreground tracking-tight">
-              ProGestao<span className="text-primary">+</span>
-            </span>
+          <div className="flex items-center justify-center mb-3">
+            <Logo height="h-12" />
           </div>
           <p className="text-sm text-muted-foreground">Defina sua nova senha</p>
         </div>
