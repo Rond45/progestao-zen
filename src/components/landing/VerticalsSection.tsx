@@ -64,11 +64,12 @@ const VerticalsSection = () => {
                 src={v.image}
                 alt={v.title}
                 className="w-full h-full object-cover"
+                style={{ filter: "brightness(1.55) contrast(1.05) saturate(1.1)" }}
                 loading="lazy" />
 
                 <div
                 className="absolute inset-0"
-                style={{ background: "rgba(10,15,20,0.1)" }} />
+                style={{ background: "linear-gradient(180deg, rgba(10,15,20,0) 60%, rgba(10,15,20,0.35) 100%)" }} />
 
                 <div className="absolute inset-0 flex items-center justify-center">
                   
