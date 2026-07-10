@@ -17,6 +17,7 @@ import {
   CreditCard,
   Lock,
 } from "lucide-react";
+import Logo from "@/components/Logo";
 import { useAuth } from "@/hooks/useAuth";
 import { useBusiness } from "@/hooks/useBusiness";
 import { usePlan } from "@/hooks/usePlan";
@@ -77,12 +78,7 @@ const DashboardLayout = () => {
         }`}
       >
         <div className="h-16 flex items-center justify-between px-5 border-b border-sidebar-border">
-          <div className="flex items-center gap-2">
-            <Scissors className="h-5 w-5 text-sidebar-primary" />
-            <span className="text-base font-semibold text-foreground tracking-[-0.01em] font-[family-name:'Manrope',Inter,sans-serif]">
-              ProGestão<span className="text-sidebar-primary font-bold ml-0.5">+</span>
-            </span>
-          </div>
+          <Logo height="h-9" />
           <button
             className="lg:hidden text-muted-foreground hover:text-foreground"
             onClick={() => setSidebarOpen(false)}
