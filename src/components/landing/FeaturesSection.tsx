@@ -1,46 +1,44 @@
 import { motion } from "framer-motion";
-import {
-  Calendar,
-  MessageSquare,
-  Users,
-  BarChart3,
-  Shield,
-  Sparkles,
-} from "lucide-react";
+import iconAgenda from "@/assets/feature-agenda.png.asset.json";
+import iconWhatsapp from "@/assets/feature-whatsapp.png.asset.json";
+import iconCrm from "@/assets/feature-crm.png.asset.json";
+import iconFinanceiro from "@/assets/feature-financeiro.png.asset.json";
+import iconAntifuro from "@/assets/feature-antifuro.png.asset.json";
+import iconMultitenant from "@/assets/feature-multitenant.png.asset.json";
 
 const features = [
   {
-    icon: Calendar,
+    icon: iconAgenda.url,
     title: "Agenda Inteligente",
     description:
       "Gestão completa de horários com bloqueios, pausas e controle por profissional.",
   },
   {
-    icon: MessageSquare,
+    icon: iconWhatsapp.url,
     title: "WhatsApp com IA",
     description:
       "Agendamento automatizado, confirmações e lembretes direto no WhatsApp.",
   },
   {
-    icon: Users,
+    icon: iconCrm.url,
     title: "CRM de Clientes",
     description:
       "Histórico completo, tags, preferências e reconhecimento automático.",
   },
   {
-    icon: BarChart3,
+    icon: iconFinanceiro.url,
     title: "Financeiro Completo",
     description:
       "Caixa diário, comissões automáticas e relatórios por profissional.",
   },
   {
-    icon: Shield,
+    icon: iconAntifuro.url,
     title: "Política Antifuro",
     description:
       "Sinais via Pix, confirmações obrigatórias e controle de faltas.",
   },
   {
-    icon: Sparkles,
+    icon: iconMultitenant.url,
     title: "Multi-tenant",
     description:
       "Dados isolados por empresa com papéis definidos e acesso controlado.",
@@ -93,7 +91,7 @@ const FeaturesSection = () => {
           {features.map((feature, i) => (
             <motion.div
               key={feature.title}
-              className="group rounded-xl border border-border/60 p-6 transition-all duration-250 hover:border-[rgba(184,143,60,0.35)] hover:-translate-y-1 relative"
+              className="group rounded-xl border border-border/60 p-6 transition-all duration-250 hover:border-[rgba(184,143,60,0.35)] hover:-translate-y-1 relative flex flex-col sm:flex-row items-start gap-4"
               style={{ background: "linear-gradient(135deg, rgba(20,18,12,0.9), rgba(14,12,10,0.95))", boxShadow: "inset 0 1px 0 rgba(184,143,60,0.06)" }}
               whileHover={{ boxShadow: "0 15px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(184,143,60,0.1)" }}
               custom={i}
@@ -102,13 +100,22 @@ const FeaturesSection = () => {
               viewport={{ once: true }}
               variants={fadeUp}
             >
-              <feature.icon className="h-5 w-5 text-primary mb-4" />
-              <h3 className="text-base font-semibold text-foreground mb-2">
-                {feature.title}
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {feature.description}
-              </p>
+              <img
+                src={feature.icon}
+                alt={feature.title}
+                loading="lazy"
+                width={96}
+                height={96}
+                className="h-20 w-20 md:h-24 md:w-24 object-contain shrink-0 drop-shadow-[0_6px_18px_rgba(184,143,60,0.25)]"
+              />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-semibold text-foreground mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
             </motion.div>
           ))}
         </div>
