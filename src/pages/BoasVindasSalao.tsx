@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sparkles, ArrowRight, Star, Shield, Calendar } from "lucide-react";
+import { ArrowRight, Star, Shield, Calendar } from "lucide-react";
 import heroSalon from "@/assets/hero-salon.jpg";
+import iconSalao from "@/assets/icon-salao.png.asset.json";
 import { storeVertical, useVerticalTheme } from "@/hooks/useVerticalTheme";
 
 const BoasVindasSalao = () => {
@@ -41,11 +42,8 @@ const BoasVindasSalao = () => {
             <span className="text-xs font-medium" style={{ color: "rgba(200,180,240,0.8)" }}>Ambiente Salão de Beleza</span>
           </div>
 
-          <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
-            style={{ background: "linear-gradient(135deg, #7C3AED, #581C87)", boxShadow: "0 8px 30px rgba(124,58,237,0.3)" }}
-          >
-            <Sparkles className="h-8 w-8 text-white" />
+          <div className="mx-auto mb-6 flex items-center justify-center" style={{ filter: "drop-shadow(0 10px 28px rgba(124,58,237,0.45))" }}>
+            <img src={iconSalao.url} alt="Ícone Salão de Beleza" width={128} height={128} className="w-28 h-28 md:w-32 md:h-32 object-contain" loading="lazy" />
           </div>
 
           <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-4" style={{ color: "rgba(245,240,255,0.95)" }}>

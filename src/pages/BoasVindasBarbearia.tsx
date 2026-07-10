@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Scissors, ArrowRight, Star, Shield, Calendar } from "lucide-react";
+import { ArrowRight, Star, Shield, Calendar } from "lucide-react";
 import heroBarbershop from "@/assets/hero-barbershop.jpg";
+import iconBarbearia from "@/assets/icon-barbearia.png.asset.json";
 import { storeVertical, useVerticalTheme } from "@/hooks/useVerticalTheme";
 
 const BoasVindasBarbearia = () => {
@@ -35,8 +36,8 @@ const BoasVindasBarbearia = () => {
             <span className="text-xs text-muted-foreground font-medium">Ambiente Barbearia</span>
           </div>
 
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: "linear-gradient(135deg, hsl(160 72% 40%), hsl(160 84% 30%))" }}>
-            <Scissors className="h-8 w-8 text-background" />
+          <div className="mx-auto mb-6 flex items-center justify-center" style={{ filter: "drop-shadow(0 10px 24px rgba(16,185,129,0.25))" }}>
+            <img src={iconBarbearia.url} alt="Ícone Barbearia" width={128} height={128} className="w-28 h-28 md:w-32 md:h-32 object-contain" loading="lazy" />
           </div>
 
           <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight mb-4">
