@@ -106,7 +106,7 @@ const FeaturesSection = () => {
                 loading="lazy"
                 width={96}
                 height={96}
-                className="h-20 w-20 md:h-24 md:w-24 object-contain shrink-0 drop-shadow-[0_6px_18px_rgba(184,143,60,0.25)]"
+                className="h-16 w-16 md:h-20 md:w-20 object-contain shrink-0 drop-shadow-[0_6px_18px_rgba(184,143,60,0.25)]"
               />
               <div className="flex-1 min-w-0">
                 <h3 className="text-base font-semibold text-foreground mb-2">
