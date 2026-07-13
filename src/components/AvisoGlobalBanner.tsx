@@ -40,12 +40,18 @@ const AvisoGlobalBanner = () => {
   };
 
   return (
-    <div className={`flex items-center gap-2 px-4 py-2 text-sm border-b ${
-      isAlert ? "bg-red-500/10 border-red-500/30 text-red-300" : "bg-blue-500/10 border-blue-500/30 text-blue-300"
+    <div className={`flex items-center gap-2.5 px-4 py-3 text-sm border-b ${
+      isAlert
+        ? "bg-amber-50 border-amber-200 text-amber-900"
+        : "bg-blue-50 border-blue-200 text-blue-800"
     }`}>
-      <Icon className="h-4 w-4 shrink-0" />
-      <p className="flex-1">{aviso.mensagem}</p>
-      <button onClick={dismiss} className="hover:opacity-70" aria-label="Fechar aviso">
+      <Icon className={`h-4 w-4 shrink-0 ${isAlert ? "text-amber-700" : "text-blue-700"}`} />
+      <p className="flex-1 font-medium">{aviso.mensagem}</p>
+      <button
+        onClick={dismiss}
+        className="shrink-0 opacity-70 hover:opacity-100 transition-opacity"
+        aria-label="Fechar aviso"
+      >
         <X className="h-4 w-4" />
       </button>
     </div>
