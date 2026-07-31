@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Settings, Store, Clock, Shield, Users, Lock, Plus, MessageSquare } from "lucide-react";
+import { Settings, Store, Clock, Shield, Users, Lock, Plus, MessageSquare, ImageUp, Loader2 } from "lucide-react";
 import { useBusiness } from "@/hooks/useBusiness";
+import { useBusinessLogo } from "@/hooks/useBusinessLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -30,6 +31,56 @@ const Configuracoes = () => {
   // Business form
   const [bizForm, setBizForm] = useState({ name: "", phone: "", address: "" });
   const [schedule, setSchedule] = useState<WeekSchedule>(getDefaultSchedule());
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoUrl = useBusinessLogo((business as any)?.logo_url);
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !businessId) return;
+
+    const allowed = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      toast({
+        title: "Formato inválido",
+        description: "Envie uma imagem PNG, JPG ou WEBP.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (file.size > 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O tamanho máximo permitido é 1MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+      const path = `${businessId}/logo-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("logos")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+
+      const { error: dbErr } = await supabase
+        .from("businesses")
+        .update({ logo_url: path } as any)
+        .eq("id", businessId);
+      if (dbErr) throw dbErr;
+
+      queryClient.invalidateQueries({ queryKey: ["business"] });
+      queryClient.invalidateQueries({ queryKey: ["business-logo"] });
+      toast({ title: "Logo atualizada" });
+    } catch (err: any) {
+      toast({ title: "Erro ao enviar logo", description: err.message, variant: "destructive" });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   useEffect(() => {
     if (business) {
@@ -192,6 +243,40 @@ const Configuracoes = () => {
             <div className="space-y-2">
               <Label className="text-sm font-medium text-foreground">Endereço</Label>
               <Input value={bizForm.address} onChange={(e) => setBizForm({ ...bizForm, address: e.target.value })} />
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-border">
+              <Label className="text-sm font-medium text-foreground">Logo da empresa</Label>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                {logoUrl && (
+                  <div className="h-16 w-32 shrink-0 rounded-md border border-border bg-muted/40 flex items-center justify-center overflow-hidden">
+                    <img src={logoUrl} alt="Logo da empresa" className="h-14 w-auto object-contain" />
+                  </div>
+                )}
+                <label className="inline-flex">
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={handleLogoChange}
+                    disabled={uploadingLogo}
+                  />
+                  <Button asChild variant="outline" size="sm" disabled={uploadingLogo}>
+                    <span className="cursor-pointer">
+                      {uploadingLogo ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <ImageUp className="h-3.5 w-3.5" />
+                      )}
+                      {logoUrl ? "Trocar logo" : "Enviar logo da empresa"}
+                    </span>
+                  </Button>
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Use uma imagem PNG com fundo transparente, de preferência quadrada ou horizontal.
+                Tamanho recomendado: 200x200 pixels ou similar. Máximo 1MB.
+              </p>
             </div>
           </div>
         </div>
