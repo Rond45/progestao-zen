@@ -20,6 +20,7 @@ import {
 import Logo from "@/components/Logo";
 import { useAuth } from "@/hooks/useAuth";
 import { useBusiness } from "@/hooks/useBusiness";
+import { useBusinessLogo } from "@/hooks/useBusinessLogo";
 import { usePlan } from "@/hooks/usePlan";
 import { ROUTE_MIN_PLAN, type PlanName } from "@/lib/planAccess";
 import VencimentoGate from "@/components/pagamento/VencimentoGate";
@@ -47,6 +48,7 @@ const DashboardLayout = () => {
   const { profile, business } = useBusiness();
   const location = useLocation();
   const { hasAccess } = usePlan();
+  const businessLogo = useBusinessLogo((business as any)?.logo_url);
 
   const currentNav =
     [...navItems]
@@ -77,8 +79,20 @@ const DashboardLayout = () => {
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="h-16 flex items-center justify-between px-5 border-b border-sidebar-border">
-          <Logo height="h-9" />
+        <div className="h-16 flex items-center justify-between gap-3 px-5 border-b border-sidebar-border">
+          <div className="flex items-center gap-3 min-w-0">
+            <Logo height="h-9" />
+            {businessLogo && (
+              <>
+                <span className="h-8 w-px bg-sidebar-border shrink-0" />
+                <img
+                  src={businessLogo}
+                  alt={business?.name || "Logo do negócio"}
+                  className="h-9 w-auto max-w-[96px] object-contain shrink-0"
+                />
+              </>
+            )}
+          </div>
           <button
             className="lg:hidden text-muted-foreground hover:text-foreground"
             onClick={() => setSidebarOpen(false)}
