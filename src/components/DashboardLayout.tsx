@@ -70,8 +70,8 @@ const DashboardLayout = () => {
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="h-16 flex items-center justify-between gap-3 px-5 border-b border-sidebar-border">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="relative flex flex-col items-center justify-center gap-2 py-4 px-5 border-b border-sidebar-border">
+          <div className="flex items-center justify-center gap-3">
             <Logo height="h-9" />
             {businessLogo && (
               <>
@@ -79,13 +79,18 @@ const DashboardLayout = () => {
                 <img
                   src={businessLogo}
                   alt={business?.name || "Logo do negócio"}
-                  className="h-9 w-auto max-w-[96px] object-contain shrink-0"
+                  className="h-11 w-11 rounded-full object-cover ring-2 ring-sidebar-border shadow-sm shrink-0"
                 />
               </>
             )}
           </div>
+          {business?.name && (
+            <p className="font-serif text-base font-semibold tracking-wide text-sidebar-foreground text-center">
+              {business.name}
+            </p>
+          )}
           <button
-            className="lg:hidden text-muted-foreground hover:text-foreground"
+            className="absolute top-3 right-3 lg:hidden text-muted-foreground hover:text-foreground"
             onClick={() => setSidebarOpen(false)}
           >
             <X className="h-5 w-5" />
