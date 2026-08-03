@@ -262,7 +262,7 @@ const Profissionais = () => {
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${p.active ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"}`}>
                   {p.active ? "Ativo" : "Inativo"}
                 </span>
-                <span className="text-[10px] text-muted-foreground">{formatCompensation(p)}</span>
+                <CompensationBadge professionalId={p.id} />
               </div>
             </div>
           ))}
