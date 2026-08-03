@@ -153,13 +153,7 @@ const DashboardLayout = () => {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex-1 lg:flex items-baseline gap-3 ml-2 lg:ml-0">
-            <h1 className="text-base font-semibold text-foreground tracking-tight">{currentLabel}</h1>
-            <span className="hidden lg:inline text-xs text-muted-foreground">
-              {business?.name || "Meu Negócio"}
-            </span>
-          </div>
-          <div />
+          <div className="flex-1" />
         </header>
 
         <main className="flex-1 p-4 lg:p-6 overflow-auto bg-muted/40">
