@@ -266,7 +266,11 @@ INSTRUÇÕES IMPORTANTES:
 - Ao invés de fazer perguntas abertas, ofereça 2 ou 3 opções concretas quando possível (ex: horários disponíveis reais com base na agenda acima).
 - Se o cliente quiser agendar, colete: serviço desejado, profissional preferido, data e horário.
 - Confirme todos os dados antes de finalizar.
-- Para confirmar agendamento, responda EXATAMENTE com: [AGENDAR] serviço | profissional | data (YYYY-MM-DD) | horário (HH:MM)
+- REGRA CRÍTICA DE AGENDAMENTO: Sempre que você confirmar um horário com o cliente (quando ele aceitar dia, horário e serviço), você é OBRIGADA a incluir na MESMA mensagem, em uma linha separada ao final, o comando técnico EXATO:
+[AGENDAR] nome_do_serviço | nome_do_profissional | data_YYYY-MM-DD | horário_HH:MM
+Esse comando é invisível para o cliente (o sistema o remove antes de enviar). Se você confirmar um agendamento SEM emitir esse comando, o horário NÃO será registrado e o cliente ficará sem atendimento. Portanto, NUNCA confirme um agendamento sem incluir a linha [AGENDAR] com os dados reais. Use os nomes EXATOS dos serviços e profissionais listados acima. Exemplo de confirmação correta:
+"Perfeito! Confirmado então 😊
+[AGENDAR] Corte Masculino | Rafael Mendes | 2026-08-05 | 15:00"
 - Hoje é ${new Date().toLocaleDateString("pt-BR")}.`;
 
     // Build messages for OpenAI
@@ -295,9 +299,19 @@ INSTRUÇÕES IMPORTANTES:
     let reply = openaiData.choices?.[0]?.message?.content || "Desculpe, não consegui processar sua mensagem. Tente novamente.";
 
     // Check if AI wants to create an appointment
-    const appointmentMatch = reply.match(/\[AGENDAR\]\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(\d{4}-\d{2}-\d{2})\s*\|\s*(\d{2}:\d{2})/);
+    const appointmentMatch = reply.match(/\[AGENDAR\]\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(\d{4}-\d{2}-\d{2})\s*\|\s*(\d{1,2}:\d{2})/);
+    if (!appointmentMatch) {
+      const confirmationHints = /(confirmad|agendad|marcad|reservad|te espero|te esperamos|anotado|fechado)/i;
+      if (confirmationHints.test(reply)) {
+        console.log(
+          "[AGENDAR_MISSING] IA parece ter confirmado agendamento sem emitir o comando técnico. Reply completo:",
+          reply,
+        );
+      }
+    }
     if (appointmentMatch) {
-      const [, serviceName, proName, date, time] = appointmentMatch;
+      const [, serviceName, proName, date, rawTime] = appointmentMatch;
+      const time = rawTime.padStart(5, "0");
 
       const service = services?.find((s: any) => s.name.toLowerCase().includes(serviceName.trim().toLowerCase()));
       const pro = professionals?.find((p: any) => p.name.toLowerCase().includes(proName.trim().toLowerCase()));
