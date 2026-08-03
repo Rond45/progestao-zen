@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Calendar,
@@ -46,17 +46,8 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { profile, business } = useBusiness();
-  const location = useLocation();
   const { hasAccess } = usePlan();
   const businessLogo = useBusinessLogo((business as any)?.logo_url);
-
-  const currentNav =
-    [...navItems]
-      .sort((a, b) => b.to.length - a.to.length)
-      .find((item) =>
-        item.end ? location.pathname === item.to : location.pathname.startsWith(item.to),
-      );
-  const currentLabel = currentNav?.label ?? "Painel";
 
   const handleLogout = async () => {
     await signOut();
@@ -79,8 +70,8 @@ const DashboardLayout = () => {
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="h-16 flex items-center justify-between gap-3 px-5 border-b border-sidebar-border">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="relative flex flex-col items-center justify-center gap-2 py-4 px-5 border-b border-sidebar-border">
+          <div className="flex items-center justify-center gap-3">
             <Logo height="h-9" />
             {businessLogo && (
               <>
@@ -88,13 +79,18 @@ const DashboardLayout = () => {
                 <img
                   src={businessLogo}
                   alt={business?.name || "Logo do negócio"}
-                  className="h-9 w-auto max-w-[96px] object-contain shrink-0"
+                  className="h-11 w-11 rounded-full object-cover ring-2 ring-sidebar-border shadow-sm shrink-0"
                 />
               </>
             )}
           </div>
+          {business?.name && (
+            <p className="font-serif text-base font-semibold tracking-wide text-sidebar-foreground text-center">
+              {business.name}
+            </p>
+          )}
           <button
-            className="lg:hidden text-muted-foreground hover:text-foreground"
+            className="absolute top-3 right-3 lg:hidden text-muted-foreground hover:text-foreground"
             onClick={() => setSidebarOpen(false)}
           >
             <X className="h-5 w-5" />
@@ -157,13 +153,7 @@ const DashboardLayout = () => {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex-1 lg:flex items-baseline gap-3 ml-2 lg:ml-0">
-            <h1 className="text-base font-semibold text-foreground tracking-tight">{currentLabel}</h1>
-            <span className="hidden lg:inline text-xs text-muted-foreground">
-              {business?.name || "Meu Negócio"}
-            </span>
-          </div>
-          <div />
+          <div className="flex-1" />
         </header>
 
         <main className="flex-1 p-4 lg:p-6 overflow-auto bg-muted/40">
