@@ -313,6 +313,22 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
               },
             },
           },
+          {
+            type: "function",
+            function: {
+              name: "salvar_nome_cliente",
+              description:
+                "Salva o nome do cliente assim que ele se identificar ou informar como se chama, de qualquer forma que seja. Use sempre que descobrir o nome do cliente na conversa.",
+              parameters: {
+                type: "object",
+                properties: {
+                  nome: { type: "string", description: "Primeiro nome (e sobrenome se houver) do cliente" },
+                },
+                required: ["nome"],
+                additionalProperties: false,
+              },
+            },
+          },
         ],
       }),
     });
@@ -323,7 +339,8 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
 
     // Helper: create appointment from resolved service/professional
     const createAppointment = async (service: any, pro: any, date: string, time: string) => {
-      const startsAt = new Date(`${date}T${time}:00`);
+      // Rondônia: offset fixo -04:00 (sem horário de verão)
+      const startsAt = new Date(`${date}T${time}:00-04:00`);
       const endsAt = new Date(startsAt.getTime() + service.duration_minutes * 60000);
       const { error } = await supabase.from("appointments").insert({
         business_id: businessId,
@@ -338,10 +355,27 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
       return error;
     };
 
-    // 1) Preferred path: OpenAI function calling
-    const toolCall = (aiMessage?.tool_calls ?? []).find(
-      (t: any) => t.function?.name === "criar_agendamento",
-    );
+    // 1) Preferred path: OpenAI function calling — process ALL tool calls
+    const toolCalls = (aiMessage?.tool_calls ?? []) as any[];
+    const nameCall = toolCalls.find((t: any) => t.function?.name === "salvar_nome_cliente");
+    const toolCall = toolCalls.find((t: any) => t.function?.name === "criar_agendamento");
+
+    if (nameCall) {
+      try {
+        const nameArgs = JSON.parse(nameCall.function?.arguments || "{}");
+        const cleaned = String(nameArgs.nome ?? "")
+          .trim()
+          .split(/\s+/)
+          .slice(0, 3)
+          .join(" ");
+        if (cleaned.length >= 2) {
+          await supabase.from("clients").update({ name: cleaned }).eq("id", client!.id);
+          client!.name = cleaned;
+        }
+      } catch (err) {
+        console.error("[NAME_TOOL_PARSE_ERROR]", nameCall.function?.arguments, err);
+      }
+    }
 
     let handledByTool = false;
     if (toolCall) {
@@ -377,7 +411,7 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
           console.error("Appointment error (tool):", aptError);
           reply = `Não consegui registrar o horário: ${aptError.message?.includes("Conflito") || aptError.message?.includes("jornada") ? aptError.message : "houve um erro no sistema"}. Podemos tentar outro horário?`;
         } else {
-          reply = `✅ Agendamento confirmado!\n📋 ${service.name} com ${pro.name}\n📅 ${new Date(`${date}T${time}:00`).toLocaleDateString("pt-BR")} às ${time}\n\nTe esperamos! 😊`;
+          reply = `✅ Agendamento confirmado!\n📋 ${service.name} com ${pro.name}\n📅 ${new Date(`${date}T${time}:00-04:00`).toLocaleDateString("pt-BR", { timeZone: "America/Porto_Velho" })} às ${time}\n\nTe esperamos! 😊`;
         }
       }
     }
@@ -412,7 +446,7 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
           console.error("Appointment error:", aptError);
           reply = reply.replace(/\[AGENDAR\].*/, "") + "\n\nHouve um erro ao criar o agendamento. Por favor, tente novamente ou entre em contato diretamente.";
         } else {
-          reply = reply.replace(/\[AGENDAR\].*/, "") + `\n\n✅ Agendamento confirmado!\n📋 ${service.name} com ${pro.name}\n📅 ${new Date(date).toLocaleDateString("pt-BR")} às ${time}\n\nTe esperamos! 😊`;
+          reply = reply.replace(/\[AGENDAR\].*/, "") + `\n\n✅ Agendamento confirmado!\n📋 ${service.name} com ${pro.name}\n📅 ${new Date(`${date}T${time}:00-04:00`).toLocaleDateString("pt-BR", { timeZone: "America/Porto_Velho" })} às ${time}\n\nTe esperamos! 😊`;
         }
       }
     }
