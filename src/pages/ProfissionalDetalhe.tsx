@@ -4,6 +4,7 @@ import { useBusiness } from "@/hooks/useBusiness";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { compensationQuery } from "@/components/profissionais/CompensationBadge";
 
 const ProfissionalDetalhe = () => {
   const { id } = useParams();
@@ -13,12 +14,18 @@ const ProfissionalDetalhe = () => {
   const { data: professional } = useQuery({
     queryKey: ["professional", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("professionals").select("*").eq("id", id!).single();
+      const { data, error } = await supabase
+        .from("professionals")
+        .select("id, business_id, name, specialty, active, created_at, compensation_type")
+        .eq("id", id!)
+        .single();
       if (error) throw error;
       return data;
     },
     enabled: !!id,
   });
+
+  const { data: compensation } = useQuery({ ...compensationQuery(id!), enabled: !!id });
 
   const { data: executions = [], isLoading } = useQuery({
     queryKey: ["service-executions", id],
@@ -39,11 +46,11 @@ const ProfissionalDetalhe = () => {
   const uniqueClients = new Set(executions.map((e: any) => e.client_id)).size;
 
   const calcLiquido = () => {
-    if (!professional) return 0;
+    if (!professional || !compensation) return 0;
     if (professional.compensation_type === "percentage") {
-      return Math.round(totalBruto * ((professional.commission_percentage || 0) / 100));
+      return Math.round(totalBruto * ((compensation.commission_percentage || 0) / 100));
     }
-    return professional.salary_cents || 0;
+    return compensation.salary_cents || 0;
   };
 
   const liquido = calcLiquido();
@@ -65,7 +72,7 @@ const ProfissionalDetalhe = () => {
         </button>
         <h1 className="text-2xl font-bold text-foreground">{professional.name}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {professional.specialty || "Geral"} — {professional.compensation_type === "percentage" ? `Comissao ${professional.commission_percentage}%` : `Salario ${formatPrice(professional.salary_cents || 0)}`}
+          {professional.specialty || "Geral"} — {professional.compensation_type === "percentage" ? `Comissao ${compensation?.commission_percentage ?? "—"}%` : `Salario ${formatPrice(compensation?.salary_cents || 0)}`}
         </p>
       </div>
 
