@@ -21,6 +21,7 @@ import {
 import { usePlan } from "@/hooks/usePlan";
 import { PLAN_LABEL, PROFESSIONAL_LIMITS, NEXT_PLAN, type PlanName } from "@/lib/planAccess";
 import PagamentoModal from "@/components/pagamento/PagamentoModal";
+import CompensationBadge, { compensationQuery } from "@/components/profissionais/CompensationBadge";
 
 const Profissionais = () => {
   const { businessId } = useBusiness();
@@ -80,6 +81,7 @@ const Profissionais = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["professionals", businessId] });
       setDialogOpen(false);
+      if (editing) queryClient.invalidateQueries({ queryKey: ["professional-compensation", editing.id] });
       resetForm();
       toast({ title: editing ? "Profissional atualizado" : "Profissional adicionado" });
     },
@@ -111,23 +113,29 @@ const Profissionais = () => {
     setEditing(null);
   };
 
-  const openEdit = (p: any) => {
+  const openEdit = async (p: any) => {
     setEditing(p);
     setForm({
       name: p.name,
       specialty: p.specialty || "",
       compensation_type: p.compensation_type || "percentage",
-      commission_percentage: p.commission_percentage != null ? String(p.commission_percentage) : "",
-      salary_cents: p.salary_cents != null ? (p.salary_cents / 100).toFixed(2) : "",
+      commission_percentage: "",
+      salary_cents: "",
     });
     setDialogOpen(true);
-  };
-
-  const formatCompensation = (p: any) => {
-    if (p.compensation_type === "salary" && p.salary_cents != null) {
-      return `Salario R$ ${(p.salary_cents / 100).toFixed(2).replace(".", ",")}`;
+    try {
+      const comp = await queryClient.fetchQuery(compensationQuery(p.id));
+      if (comp) {
+        setForm((prev) => ({
+          ...prev,
+          compensation_type: comp.compensation_type || prev.compensation_type,
+          commission_percentage: comp.commission_percentage != null ? String(comp.commission_percentage) : "",
+          salary_cents: comp.salary_cents != null ? (comp.salary_cents / 100).toFixed(2) : "",
+        }));
+      }
+    } catch {
+      /* sem permissão: mantém campos vazios */
     }
-    return `Comissao ${p.commission_percentage || 0}%`;
   };
 
   return (
