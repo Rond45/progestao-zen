@@ -136,23 +136,22 @@ Deno.serve(async (req) => {
 
       case "create-instance": {
         const { business_id } = params;
-        // Get global config
-        const { data: cfgRows } = await supabase.from("platform_config").select("key, value");
-        const cfg: Record<string, string> = {};
-        (cfgRows ?? []).forEach((r: any) => { cfg[r.key] = r.value; });
-
-        if (!cfg.evolution_api_url || !cfg.evolution_api_key) {
-          return json({ error: "Configure a URL e API Key da Evolution API primeiro." }, 400);
+        // Credentials live only in server secrets, never in the database
+        const evolutionUrlRaw = Deno.env.get("EVOLUTION_API_URL");
+        const evolutionKey = Deno.env.get("EVOLUTION_API_KEY");
+        if (!evolutionUrlRaw || !evolutionKey) {
+          return json({ error: "Evolution API não configurada no servidor." }, 500);
         }
+        const evolutionUrl = evolutionUrlRaw.replace(/\/$/, "");
 
         // Get business name for slug
         const { data: biz } = await supabase.from("businesses").select("name").eq("id", business_id).single();
         const instance_name = slugify(biz?.name || business_id);
 
         // Create instance on Evolution API
-        const createRes = await fetch(`${cfg.evolution_api_url}/instance/create`, {
+        const createRes = await fetch(`${evolutionUrl}/instance/create`, {
           method: "POST",
-          headers: { "Content-Type": "application/json", apikey: cfg.evolution_api_key },
+          headers: { "Content-Type": "application/json", apikey: evolutionKey },
           body: JSON.stringify({ instanceName: instance_name, integration: "WHATSAPP-BAILEYS" }),
         });
         if (!createRes.ok) {
@@ -164,8 +163,8 @@ Deno.serve(async (req) => {
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         // Get QR code
-        const qrRes = await fetch(`${cfg.evolution_api_url}/instance/connect/${instance_name}`, {
-          headers: { apikey: cfg.evolution_api_key },
+        const qrRes = await fetch(`${evolutionUrl}/instance/connect/${instance_name}`, {
+          headers: { apikey: evolutionKey },
         });
         let qr_code = null;
         if (qrRes.ok) {
@@ -182,10 +181,7 @@ Deno.serve(async (req) => {
               instance_name,
               status: "pending",
               qr_code,
-              evolution_api_url: cfg.evolution_api_url,
-              evolution_api_key: cfg.evolution_api_key,
-              openai_api_key: cfg.openai_api_key || null,
-              openai_model: cfg.openai_model || "gpt-4o-mini",
+              openai_model: "gpt-4o-mini",
               updated_at: new Date().toISOString(),
             },
             { onConflict: "business_id" }
@@ -198,15 +194,17 @@ Deno.serve(async (req) => {
         const { business_id } = params;
         const { data: conn } = await supabase
           .from("whatsapp_connections")
-          .select("instance_name, evolution_api_url, evolution_api_key")
+          .select("instance_name")
           .eq("business_id", business_id)
           .single();
 
-        if (conn?.instance_name && conn?.evolution_api_url && conn?.evolution_api_key) {
+        const evoUrl = Deno.env.get("EVOLUTION_API_URL")?.replace(/\/$/, "");
+        const evoKey = Deno.env.get("EVOLUTION_API_KEY");
+        if (conn?.instance_name && evoUrl && evoKey) {
           try {
             await fetch(
-              `${conn.evolution_api_url}/instance/logout/${conn.instance_name}`,
-              { method: "DELETE", headers: { apikey: conn.evolution_api_key } }
+              `${evoUrl}/instance/logout/${conn.instance_name}`,
+              { method: "DELETE", headers: { apikey: evoKey } }
             );
           } catch (e) {
             console.error("Logout error:", e);
