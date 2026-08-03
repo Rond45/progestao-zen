@@ -411,7 +411,7 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
           console.error("Appointment error (tool):", aptError);
           reply = `Não consegui registrar o horário: ${aptError.message?.includes("Conflito") || aptError.message?.includes("jornada") ? aptError.message : "houve um erro no sistema"}. Podemos tentar outro horário?`;
         } else {
-          reply = `✅ Agendamento confirmado!\n📋 ${service.name} com ${pro.name}\n📅 ${new Date(`${date}T${time}:00`).toLocaleDateString("pt-BR")} às ${time}\n\nTe esperamos! 😊`;
+          reply = `✅ Agendamento confirmado!\n📋 ${service.name} com ${pro.name}\n📅 ${new Date(`${date}T${time}:00-04:00`).toLocaleDateString("pt-BR", { timeZone: "America/Porto_Velho" })} às ${time}\n\nTe esperamos! 😊`;
         }
       }
     }
@@ -446,7 +446,7 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
           console.error("Appointment error:", aptError);
           reply = reply.replace(/\[AGENDAR\].*/, "") + "\n\nHouve um erro ao criar o agendamento. Por favor, tente novamente ou entre em contato diretamente.";
         } else {
-          reply = reply.replace(/\[AGENDAR\].*/, "") + `\n\n✅ Agendamento confirmado!\n📋 ${service.name} com ${pro.name}\n📅 ${new Date(date).toLocaleDateString("pt-BR")} às ${time}\n\nTe esperamos! 😊`;
+          reply = reply.replace(/\[AGENDAR\].*/, "") + `\n\n✅ Agendamento confirmado!\n📋 ${service.name} com ${pro.name}\n📅 ${new Date(`${date}T${time}:00-04:00`).toLocaleDateString("pt-BR", { timeZone: "America/Porto_Velho" })} às ${time}\n\nTe esperamos! 😊`;
         }
       }
     }
