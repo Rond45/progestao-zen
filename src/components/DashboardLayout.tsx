@@ -146,17 +146,15 @@ const DashboardLayout = () => {
 
       <div className="flex-1 flex flex-col min-w-0">
         <AvisoGlobalBanner />
-        <header className="h-16 border-b border-border flex items-center justify-between px-4 lg:px-6 bg-card shadow-sm sticky top-0 z-30">
+
+        <main className="flex-1 p-4 lg:p-6 overflow-auto bg-muted/40">
           <button
-            className="lg:hidden text-muted-foreground hover:text-foreground"
+            className="lg:hidden mb-2 text-muted-foreground hover:text-foreground"
             onClick={() => setSidebarOpen(true)}
+            aria-label="Abrir menu"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex-1" />
-        </header>
-
-        <main className="flex-1 p-4 lg:p-6 overflow-auto bg-muted/40">
           <VencimentoGate />
           <AnuncioPopup />
           <Outlet />
