@@ -46,17 +46,8 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const { profile, business } = useBusiness();
-  const location = useLocation();
   const { hasAccess } = usePlan();
   const businessLogo = useBusinessLogo((business as any)?.logo_url);
-
-  const currentNav =
-    [...navItems]
-      .sort((a, b) => b.to.length - a.to.length)
-      .find((item) =>
-        item.end ? location.pathname === item.to : location.pathname.startsWith(item.to),
-      );
-  const currentLabel = currentNav?.label ?? "Painel";
 
   const handleLogout = async () => {
     await signOut();
