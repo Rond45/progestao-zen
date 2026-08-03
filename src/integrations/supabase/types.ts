@@ -835,10 +835,7 @@ export type Database = {
           ai_name: string | null
           business_id: string
           connected_at: string | null
-          evolution_api_key: string | null
-          evolution_api_url: string | null
           instance_name: string | null
-          openai_api_key: string | null
           openai_model: string | null
           phone_number: string | null
           phone_number_id: string | null
@@ -854,10 +851,7 @@ export type Database = {
           ai_name?: string | null
           business_id: string
           connected_at?: string | null
-          evolution_api_key?: string | null
-          evolution_api_url?: string | null
           instance_name?: string | null
-          openai_api_key?: string | null
           openai_model?: string | null
           phone_number?: string | null
           phone_number_id?: string | null
@@ -873,10 +867,7 @@ export type Database = {
           ai_name?: string | null
           business_id?: string
           connected_at?: string | null
-          evolution_api_key?: string | null
-          evolution_api_url?: string | null
           instance_name?: string | null
-          openai_api_key?: string | null
           openai_model?: string | null
           phone_number?: string | null
           phone_number_id?: string | null
@@ -920,6 +911,7 @@ export type Database = {
         Returns: boolean
       }
       is_business_member: { Args: { _business_id: string }; Returns: boolean }
+      is_business_owner: { Args: { _business_id: string }; Returns: boolean }
       verify_finance_access: {
         Args: { _business_id: string; _name: string; _password: string }
         Returns: boolean
