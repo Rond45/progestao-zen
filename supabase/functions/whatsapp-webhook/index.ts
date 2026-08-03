@@ -292,17 +292,107 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
         messages: [{ role: "system", content: systemPrompt }, ...chatHistory],
         temperature: 0.7,
         max_tokens: 500,
+        tool_choice: "auto",
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "criar_agendamento",
+              description:
+                "Registra um agendamento confirmado na agenda do estabelecimento. Use SEMPRE que o cliente confirmar dia, horário, serviço (e profissional, se houver mais de um). Não confirme um agendamento ao cliente sem chamar esta função.",
+              parameters: {
+                type: "object",
+                properties: {
+                  servico: { type: "string", description: "Nome do serviço desejado" },
+                  profissional: { type: "string", description: "Nome do profissional" },
+                  data: { type: "string", description: "Data no formato YYYY-MM-DD" },
+                  horario: { type: "string", description: "Horário no formato HH:MM" },
+                },
+                required: ["servico", "profissional", "data", "horario"],
+                additionalProperties: false,
+              },
+            },
+          },
+        ],
       }),
     });
 
     const openaiData = await openaiRes.json();
-    let reply = openaiData.choices?.[0]?.message?.content || "Desculpe, não consegui processar sua mensagem. Tente novamente.";
+    const aiMessage = openaiData.choices?.[0]?.message;
+    let reply = aiMessage?.content || "";
+
+    // Helper: create appointment from resolved service/professional
+    const createAppointment = async (service: any, pro: any, date: string, time: string) => {
+      const startsAt = new Date(`${date}T${time}:00`);
+      const endsAt = new Date(startsAt.getTime() + service.duration_minutes * 60000);
+      const { error } = await supabase.from("appointments").insert({
+        business_id: businessId,
+        client_id: client!.id,
+        professional_id: pro.id,
+        service_id: service.id,
+        starts_at: startsAt.toISOString(),
+        ends_at: endsAt.toISOString(),
+        status: "confirmed",
+        notes: "Agendado via WhatsApp IA",
+      });
+      return error;
+    };
+
+    // 1) Preferred path: OpenAI function calling
+    const toolCall = (aiMessage?.tool_calls ?? []).find(
+      (t: any) => t.function?.name === "criar_agendamento",
+    );
+
+    let handledByTool = false;
+    if (toolCall) {
+      handledByTool = true;
+      let args: any = {};
+      try {
+        args = JSON.parse(toolCall.function?.arguments || "{}");
+      } catch (err) {
+        console.error("[TOOL_ARGS_PARSE_ERROR]", toolCall.function?.arguments, err);
+      }
+
+      const serviceName = String(args.servico ?? "").trim();
+      const proName = String(args.profissional ?? "").trim();
+      const date = String(args.data ?? "").trim();
+      const time = String(args.horario ?? "").trim().padStart(5, "0");
+
+      const service = services?.find((s: any) =>
+        s.name.toLowerCase().includes(serviceName.toLowerCase()) ||
+        serviceName.toLowerCase().includes(s.name.toLowerCase())
+      );
+      const pro = professionals?.find((p: any) =>
+        p.name.toLowerCase().includes(proName.toLowerCase()) ||
+        proName.toLowerCase().includes(p.name.toLowerCase())
+      ) || (professionals?.length === 1 ? professionals[0] : undefined);
+
+      if (!service || !pro || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) {
+        console.log("[TOOL_MATCH_FAILED]", { serviceName, proName, date, time });
+        reply =
+          "Só preciso confirmar alguns detalhes antes de registrar: pode me dizer novamente o serviço, o profissional, a data e o horário desejados?";
+      } else {
+        const aptError = await createAppointment(service, pro, date, time);
+        if (aptError) {
+          console.error("Appointment error (tool):", aptError);
+          reply = `Não consegui registrar o horário: ${aptError.message?.includes("Conflito") || aptError.message?.includes("jornada") ? aptError.message : "houve um erro no sistema"}. Podemos tentar outro horário?`;
+        } else {
+          reply = `✅ Agendamento confirmado!\n📋 ${service.name} com ${pro.name}\n📅 ${new Date(`${date}T${time}:00`).toLocaleDateString("pt-BR")} às ${time}\n\nTe esperamos! 😊`;
+        }
+      }
+    }
+
+    if (!reply) {
+      reply = "Desculpe, não consegui processar sua mensagem. Tente novamente.";
+    }
 
     // Check if AI wants to create an appointment
-    const appointmentMatch = reply.match(/\[AGENDAR\]\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(\d{4}-\d{2}-\d{2})\s*\|\s*(\d{1,2}:\d{2})/);
+    const appointmentMatch = handledByTool
+      ? null
+      : reply.match(/\[AGENDAR\]\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(\d{4}-\d{2}-\d{2})\s*\|\s*(\d{1,2}:\d{2})/);
     if (!appointmentMatch) {
       const confirmationHints = /(confirmad|agendad|marcad|reservad|te espero|te esperamos|anotado|fechado)/i;
-      if (confirmationHints.test(reply)) {
+      if (!handledByTool && confirmationHints.test(reply)) {
         console.log(
           "[AGENDAR_MISSING] IA parece ter confirmado agendamento sem emitir o comando técnico. Reply completo:",
           reply,
@@ -317,20 +407,7 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
       const pro = professionals?.find((p: any) => p.name.toLowerCase().includes(proName.trim().toLowerCase()));
 
       if (service && pro) {
-        const startsAt = new Date(`${date}T${time}:00`);
-        const endsAt = new Date(startsAt.getTime() + service.duration_minutes * 60000);
-
-        const { error: aptError } = await supabase.from("appointments").insert({
-          business_id: businessId,
-          client_id: client!.id,
-          professional_id: pro.id,
-          service_id: service.id,
-          starts_at: startsAt.toISOString(),
-          ends_at: endsAt.toISOString(),
-          status: "confirmed",
-          notes: "Agendado via WhatsApp IA",
-        });
-
+        const aptError = await createAppointment(service, pro, date, time);
         if (aptError) {
           console.error("Appointment error:", aptError);
           reply = reply.replace(/\[AGENDAR\].*/, "") + "\n\nHouve um erro ao criar o agendamento. Por favor, tente novamente ou entre em contato diretamente.";
