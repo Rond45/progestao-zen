@@ -60,7 +60,7 @@ const DashboardHome = () => {
     queryFn: async () => {
       const { count, error } = await supabase
         .from("professionals")
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .eq("business_id", businessId!)
         .eq("active", true);
       if (error) throw error;

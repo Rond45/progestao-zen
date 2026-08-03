@@ -56,7 +56,7 @@ const Agenda = () => {
     queryKey: ["professionals", businessId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("professionals").select("*").eq("business_id", businessId!).eq("active", true).order("name");
+        .from("professionals").select("id, business_id, name, specialty, active, created_at, compensation_type").eq("business_id", businessId!).eq("active", true).order("name");
       if (error) throw error;
       return data;
     },
