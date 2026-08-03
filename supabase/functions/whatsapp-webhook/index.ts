@@ -310,7 +310,8 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
       }
     }
     if (appointmentMatch) {
-      const [, serviceName, proName, date, time] = appointmentMatch;
+      const [, serviceName, proName, date, rawTime] = appointmentMatch;
+      const time = rawTime.padStart(5, "0");
 
       const service = services?.find((s: any) => s.name.toLowerCase().includes(serviceName.trim().toLowerCase()));
       const pro = professionals?.find((p: any) => p.name.toLowerCase().includes(proName.trim().toLowerCase()));
