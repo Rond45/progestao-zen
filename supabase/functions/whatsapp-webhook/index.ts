@@ -12,6 +12,99 @@ function renderPromptTemplate(
   return tpl.replace(/\{([a-zA-Z_]+)\}/g, (_, k) => vars[k] ?? "");
 }
 
+// ===== Fuso de Rondônia: UTC-4 fixo (sem horário de verão) =====
+const RO_OFFSET_MS = 4 * 60 * 60 * 1000;
+const DAY_KEYS = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
+
+/** Data/hora local de Rondônia representada como campos UTC (para leitura fácil). */
+function toLocalRO(d: Date): Date {
+  return new Date(d.getTime() - RO_OFFSET_MS);
+}
+
+/** Constrói um instante UTC a partir de data (YYYY-MM-DD) e hora (HH:MM) locais RO. */
+function fromLocalRO(dateStr: string, timeStr: string): Date {
+  return new Date(`${dateStr}T${timeStr}:00-04:00`);
+}
+
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function localDateStr(d: Date): string {
+  const l = toLocalRO(d);
+  return `${l.getUTCFullYear()}-${pad2(l.getUTCMonth() + 1)}-${pad2(l.getUTCDate())}`;
+}
+
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(":").map((x) => parseInt(x, 10));
+  return h * 60 + (m || 0);
+}
+
+function minutesToTime(min: number): string {
+  return `${pad2(Math.floor(min / 60))}:${pad2(min % 60)}`;
+}
+
+/**
+ * Calcula horários livres dos próximos 7 dias considerando jornada (working_hours),
+ * agendamentos existentes e quantidade de profissionais ativos.
+ */
+function buildAvailabilityText(
+  workingHours: any,
+  appointments: any[],
+  professionalsCount: number,
+  serviceDurationMinutes = 30,
+): string {
+  const pros = Math.max(1, professionalsCount);
+  const now = new Date();
+  const lines: string[] = [];
+
+  for (let i = 0; i < 7; i++) {
+    const dayRef = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
+    const dateStr = localDateStr(dayRef);
+    const local = toLocalRO(dayRef);
+    const dayKey = DAY_KEYS[local.getUTCDay()];
+    const label =
+      i === 0 ? "Hoje" : i === 1 ? "Amanhã" : `${pad2(local.getUTCDate())}/${pad2(local.getUTCMonth() + 1)}`;
+    const prettyDate = `${pad2(local.getUTCDate())}/${pad2(local.getUTCMonth() + 1)}`;
+    const cfg = workingHours?.[dayKey];
+
+    if (!cfg || cfg.enabled !== true || !cfg.open || !cfg.close) {
+      lines.push(`${label} (${prettyDate}): Fechado`);
+      continue;
+    }
+
+    const openMin = timeToMinutes(cfg.open);
+    const closeMin = timeToMinutes(cfg.close);
+    const free: string[] = [];
+
+    for (let m = openMin; m + serviceDurationMinutes <= closeMin; m += 30) {
+      const slotStart = fromLocalRO(dateStr, minutesToTime(m));
+      const slotEnd = new Date(slotStart.getTime() + serviceDurationMinutes * 60000);
+
+      // Já passou (para hoje)
+      if (slotStart.getTime() <= now.getTime()) continue;
+
+      const overlapping = appointments.filter((a: any) => {
+        const s = new Date(a.starts_at).getTime();
+        const e = new Date(a.ends_at).getTime();
+        return s < slotEnd.getTime() && e > slotStart.getTime();
+      });
+
+      // Só indisponível se TODOS os profissionais estiverem ocupados
+      const busyPros = new Set(overlapping.map((a: any) => a.professional_id));
+      if (busyPros.size >= pros) continue;
+
+      free.push(minutesToTime(m));
+    }
+
+    lines.push(
+      `${label} (${prettyDate}): ${free.length ? free.join(", ") : "Sem horários livres"}`,
+    );
+  }
+
+  return lines.join("\n");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -138,7 +231,8 @@ Deno.serve(async (req) => {
       .limit(10);
 
     const historyCount = clientHistory?.length ?? 0;
-    const isReturning = historyCount > 0 || (hasRealName && !isFirstContact);
+    // Só é recorrente se tivermos um nome real; sem nome => tratar como primeiro contato
+    const isReturning = hasRealName === true && (historyCount > 0 || !isFirstContact);
 
     // Get or create conversation
     let { data: conversation } = await supabase
@@ -209,6 +303,17 @@ Deno.serve(async (req) => {
       `${business?.opening_time || "09:00"} às ${business?.closing_time || "19:00"}`;
     const servicesInfo = (conn as any).services_info || servicesText;
 
+    const minDuration = Math.min(
+      ...((services ?? []).map((s: any) => s.duration_minutes).filter((n: any) => n > 0)),
+      30,
+    );
+    const availabilityText = buildAvailabilityText(
+      business?.working_hours,
+      appointments ?? [],
+      professionals?.length ?? 1,
+      Number.isFinite(minDuration) && minDuration > 0 ? minDuration : 30,
+    );
+
     // Global default prompt from platform_config (template with variables)
     const globalTemplate =
       platformCfg.default_system_prompt ||
@@ -254,6 +359,9 @@ ${servicesInfo}
 PROFISSIONAIS DISPONÍVEIS:
 ${prosText}
 
+HORÁRIOS DISPONÍVEIS (próximos 7 dias) — horário local de Rondônia (UTC-4):
+${availabilityText}
+
 AGENDA DOS PRÓXIMOS 7 DIAS (horários já ocupados):
 ${aptsText}
 
@@ -263,6 +371,7 @@ INSTRUÇÕES DE COMPORTAMENTO PARA ESTE CLIENTE:
 ${behaviorRules}
 
 INSTRUÇÕES IMPORTANTES:
+- Use SOMENTE os horários da lista de HORÁRIOS DISPONÍVEIS acima ao oferecer opções ao cliente. NUNCA invente horários que não estejam nessa lista. Se o cliente pedir um horário específico, verifique se ele está na lista: se estiver, confirme; se não, diga que não há vaga naquele horário e ofereça os mais próximos disponíveis da lista.
 - Ao invés de fazer perguntas abertas, ofereça 2 ou 3 opções concretas quando possível (ex: horários disponíveis reais com base na agenda acima).
 - Se o cliente quiser agendar, colete: serviço desejado, profissional preferido, data e horário.
 - Confirme todos os dados antes de finalizar.
@@ -338,6 +447,16 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
     let reply = aiMessage?.content || "";
 
     // Helper: create appointment from resolved service/professional
+    const friendlyAptError = (msg: string) => {
+      if (/Conflito/i.test(msg)) {
+        return "Ops, esse horário acabou de ser preenchido! Posso te oferecer outro horário próximo?";
+      }
+      if (/jornada/i.test(msg)) {
+        return `Esse horário está fora do nosso expediente. Nosso atendimento é ${workingHours}. Quer escolher outro horário?`;
+      }
+      return "Tive um probleminha ao registrar. Pode confirmar o horário novamente, por favor?";
+    };
+
     const createAppointment = async (service: any, pro: any, date: string, time: string) => {
       // Rondônia: offset fixo -04:00 (sem horário de verão)
       const startsAt = new Date(`${date}T${time}:00-04:00`);
@@ -409,7 +528,7 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
         const aptError = await createAppointment(service, pro, date, time);
         if (aptError) {
           console.error("Appointment error (tool):", aptError);
-          reply = `Não consegui registrar o horário: ${aptError.message?.includes("Conflito") || aptError.message?.includes("jornada") ? aptError.message : "houve um erro no sistema"}. Podemos tentar outro horário?`;
+          reply = friendlyAptError(aptError.message || "");
         } else {
           reply = `✅ Agendamento confirmado!\n📋 ${service.name} com ${pro.name}\n📅 ${new Date(`${date}T${time}:00-04:00`).toLocaleDateString("pt-BR", { timeZone: "America/Porto_Velho" })} às ${time}\n\nTe esperamos! 😊`;
         }
@@ -444,7 +563,7 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
         const aptError = await createAppointment(service, pro, date, time);
         if (aptError) {
           console.error("Appointment error:", aptError);
-          reply = reply.replace(/\[AGENDAR\].*/, "") + "\n\nHouve um erro ao criar o agendamento. Por favor, tente novamente ou entre em contato diretamente.";
+          reply = reply.replace(/\[AGENDAR\].*/, "").trim() + "\n\n" + friendlyAptError(aptError.message || "");
         } else {
           reply = reply.replace(/\[AGENDAR\].*/, "") + `\n\n✅ Agendamento confirmado!\n📋 ${service.name} com ${pro.name}\n📅 ${new Date(`${date}T${time}:00-04:00`).toLocaleDateString("pt-BR", { timeZone: "America/Porto_Velho" })} às ${time}\n\nTe esperamos! 😊`;
         }
