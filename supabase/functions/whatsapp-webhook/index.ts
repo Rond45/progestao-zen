@@ -364,6 +364,28 @@ Deno.serve(async (req) => {
       })
       .join("\n") || "Sem histórico anterior.";
 
+    // Format a timestamp in Rondônia local time (UTC-4)
+    const fmtRO = (iso: string) => {
+      const d = new Date(iso);
+      const dateStr = d.toLocaleDateString("pt-BR", { timeZone: "America/Porto_Velho" });
+      const timeStr = d.toLocaleTimeString("pt-BR", {
+        timeZone: "America/Porto_Velho",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const isoDate = new Date(d.getTime() - 4 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      return { dateStr, timeStr, isoDate };
+    };
+
+    const futureAptsText = (futureApts ?? []).length
+      ? (futureApts ?? [])
+          .map((a: any) => {
+            const f = fmtRO(a.starts_at);
+            return `- ${f.dateStr} (${f.isoDate}) às ${f.timeStr} — ${a.services?.name ?? "-"} com ${a.professionals?.name ?? "-"}`;
+          })
+          .join("\n")
+      : "Nenhum agendamento futuro";
+
     const aiName = (conn as any).ai_name || platformCfg.default_ai_name || "Atendente";
     const workingHours =
       (conn as any).working_hours ||
@@ -434,6 +456,9 @@ ${aptsText}
 
 ${clientBlock}
 
+SEUS AGENDAMENTOS FUTUROS (deste cliente, ativos):
+${futureAptsText}
+
 INSTRUÇÕES DE COMPORTAMENTO PARA ESTE CLIENTE:
 ${behaviorRules}
 
@@ -442,6 +467,7 @@ INSTRUÇÕES IMPORTANTES:
 - Ao invés de fazer perguntas abertas, ofereça 2 ou 3 opções concretas quando possível (ex: horários disponíveis reais com base na agenda acima).
 - Se o cliente quiser agendar, colete: serviço desejado, profissional preferido, data e horário.
 - Confirme todos os dados antes de finalizar.
+- Se o cliente quiser cancelar ou desmarcar, use a função cancelar_agendamento com a data e horário do agendamento futuro dele (veja SEUS AGENDAMENTOS FUTUROS acima). NUNCA ofereça horários para marcar quando o cliente pede para cancelar.
 - REGRA CRÍTICA DE AGENDAMENTO: Sempre que você confirmar um horário com o cliente (quando ele aceitar dia, horário e serviço), você é OBRIGADA a incluir na MESMA mensagem, em uma linha separada ao final, o comando técnico EXATO:
 [AGENDAR] nome_do_serviço | nome_do_profissional | data_YYYY-MM-DD | horário_HH:MM
 Esse comando é invisível para o cliente (o sistema o remove antes de enviar). Se você confirmar um agendamento SEM emitir esse comando, o horário NÃO será registrado e o cliente ficará sem atendimento. Portanto, NUNCA confirme um agendamento sem incluir a linha [AGENDAR] com os dados reais. Use os nomes EXATOS dos serviços e profissionais listados acima. Exemplo de confirmação correta:
