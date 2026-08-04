@@ -245,6 +245,17 @@ Deno.serve(async (req) => {
       .limit(10);
 
     const historyCount = clientHistory?.length ?? 0;
+
+    // Fetch this client's ACTIVE FUTURE appointments (used for cancellation)
+    const { data: futureApts } = await supabase
+      .from("appointments")
+      .select("id, starts_at, status, services(name), professionals(name)")
+      .eq("business_id", businessId)
+      .eq("client_id", client!.id)
+      .neq("status", "cancelled")
+      .gte("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: true });
+
     // Só é recorrente se tivermos um nome real; sem nome => tratar como primeiro contato
     const isReturning = hasRealName === true && (historyCount > 0 || !isFirstContact);
 
