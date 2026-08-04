@@ -519,6 +519,7 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
             type: "function",
             function: {
               name: "salvar_nome_cliente",
+*** PLACEHOLDER ***
               description:
                 "Salva o nome do cliente assim que ele se identificar ou informar como se chama, de qualquer forma que seja. Use sempre que descobrir o nome do cliente na conversa.",
               parameters: {
