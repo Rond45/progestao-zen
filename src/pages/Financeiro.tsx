@@ -147,7 +147,7 @@ const Financeiro = () => {
   const receitaTotal = totalServicos + totalProdutos;
 
   const totalComissoes = executions.reduce((s: number, e: any) => {
-    const p = e.professionals;
+    const p = (commissionMap as any)[e.professional_id];
     if (p?.compensation_type === "percentage") {
       return s + Math.round(e.service_price_cents * ((p.commission_percentage || 0) / 100));
     }
@@ -165,8 +165,9 @@ const Financeiro = () => {
     const existing = profMap.get(pName) || { name: pName, services: 0, revenue: 0, commission: 0 };
     existing.services++;
     existing.revenue += e.service_price_cents;
-    if (e.professionals?.compensation_type === "percentage") {
-      existing.commission += Math.round(e.service_price_cents * ((e.professionals.commission_percentage || 0) / 100));
+    const comp = (commissionMap as any)[e.professional_id];
+    if (comp?.compensation_type === "percentage") {
+      existing.commission += Math.round(e.service_price_cents * ((comp.commission_percentage || 0) / 100));
     }
     profMap.set(pName, existing);
   });
