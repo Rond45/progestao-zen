@@ -231,7 +231,8 @@ Deno.serve(async (req) => {
       .limit(10);
 
     const historyCount = clientHistory?.length ?? 0;
-    const isReturning = historyCount > 0 || (hasRealName && !isFirstContact);
+    // Só é recorrente se tivermos um nome real; sem nome => tratar como primeiro contato
+    const isReturning = hasRealName === true && (historyCount > 0 || !isFirstContact);
 
     // Get or create conversation
     let { data: conversation } = await supabase
