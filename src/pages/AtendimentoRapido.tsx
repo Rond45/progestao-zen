@@ -187,7 +187,7 @@ const AtendimentoRapido = () => {
       return;
     }
     if (serviceItems.length === 0 && productItems.length === 0) {
-      toast({ title: "Adicione ao menos um serviço ou produto", variant: "destructive" });
+      toast({ title: "Adicione pelo menos um serviço à comanda antes de finalizar.", variant: "destructive" });
       return;
     }
     setSaving(true);
