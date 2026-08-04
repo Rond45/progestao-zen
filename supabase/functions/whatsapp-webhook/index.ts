@@ -588,6 +588,7 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
     const toolCalls = (aiMessage?.tool_calls ?? []) as any[];
     const nameCall = toolCalls.find((t: any) => t.function?.name === "salvar_nome_cliente");
     const toolCall = toolCalls.find((t: any) => t.function?.name === "criar_agendamento");
+    const cancelCall = toolCalls.find((t: any) => t.function?.name === "cancelar_agendamento");
 
     if (nameCall) {
       try {
@@ -607,6 +608,48 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
     }
 
     let handledByTool = false;
+
+    if (cancelCall) {
+      handledByTool = true;
+      let cArgs: any = {};
+      try {
+        cArgs = JSON.parse(cancelCall.function?.arguments || "{}");
+      } catch (err) {
+        console.error("[CANCEL_TOOL_PARSE_ERROR]", cancelCall.function?.arguments, err);
+      }
+      const cDate = String(cArgs.data ?? "").trim();
+      const cTime = String(cArgs.horario ?? "").trim().padStart(5, "0");
+      const list = futureApts ?? [];
+
+      if (!list.length) {
+        reply =
+          "Não encontrei nenhum agendamento ativo no seu nome para cancelar. Se quiser marcar um horário, é só me avisar 😊";
+      } else {
+        let apt = list.find((a: any) => {
+          const f = fmtRO(a.starts_at);
+          return f.isoDate === cDate && f.timeStr === cTime;
+        });
+        if (!apt && list.length === 1) apt = list[0];
+
+        if (!apt) {
+          reply =
+            "Não encontrei esse agendamento no seu nome. Pode confirmar a data e o horário que deseja cancelar?";
+        } else {
+          const { error: cancelError } = await supabase
+            .from("appointments")
+            .update({ status: "cancelled" })
+            .eq("id", (apt as any).id);
+          if (cancelError) {
+            console.error("[CANCEL_ERROR]", cancelError);
+            reply = "Tive um probleminha ao cancelar. Pode confirmar a data e o horário novamente, por favor?";
+          } else {
+            const f = fmtRO((apt as any).starts_at);
+            reply = `Pronto! Seu agendamento de ${(apt as any).services?.name ?? "serviço"} em ${f.dateStr} às ${f.timeStr} foi cancelado. Se quiser marcar outro horário, é só me avisar 😊`;
+          }
+        }
+      }
+    }
+
     if (toolCall) {
       handledByTool = true;
       let args: any = {};
