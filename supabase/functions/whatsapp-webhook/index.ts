@@ -767,7 +767,8 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
     });
   } catch (e) {
     console.error("whatsapp-webhook error:", e);
-    return new Response(JSON.stringify({ error: e.message || "Erro interno" }), {
+    const errMsg = e instanceof Error ? e.message : "Erro interno";
+    return new Response(JSON.stringify({ error: errMsg }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
