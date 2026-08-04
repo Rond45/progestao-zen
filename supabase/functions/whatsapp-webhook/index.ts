@@ -303,6 +303,17 @@ Deno.serve(async (req) => {
       `${business?.opening_time || "09:00"} às ${business?.closing_time || "19:00"}`;
     const servicesInfo = (conn as any).services_info || servicesText;
 
+    const minDuration = Math.min(
+      ...((services ?? []).map((s: any) => s.duration_minutes).filter((n: any) => n > 0)),
+      30,
+    );
+    const availabilityText = buildAvailabilityText(
+      business?.working_hours,
+      appointments ?? [],
+      professionals?.length ?? 1,
+      Number.isFinite(minDuration) && minDuration > 0 ? minDuration : 30,
+    );
+
     // Global default prompt from platform_config (template with variables)
     const globalTemplate =
       platformCfg.default_system_prompt ||
@@ -348,6 +359,9 @@ ${servicesInfo}
 PROFISSIONAIS DISPONÍVEIS:
 ${prosText}
 
+HORÁRIOS DISPONÍVEIS (próximos 7 dias) — horário local de Rondônia (UTC-4):
+${availabilityText}
+
 AGENDA DOS PRÓXIMOS 7 DIAS (horários já ocupados):
 ${aptsText}
 
@@ -357,6 +371,7 @@ INSTRUÇÕES DE COMPORTAMENTO PARA ESTE CLIENTE:
 ${behaviorRules}
 
 INSTRUÇÕES IMPORTANTES:
+- Use SOMENTE os horários da lista de HORÁRIOS DISPONÍVEIS acima ao oferecer opções ao cliente. NUNCA invente horários que não estejam nessa lista. Se o cliente pedir um horário específico, verifique se ele está na lista: se estiver, confirme; se não, diga que não há vaga naquele horário e ofereça os mais próximos disponíveis da lista.
 - Ao invés de fazer perguntas abertas, ofereça 2 ou 3 opções concretas quando possível (ex: horários disponíveis reais com base na agenda acima).
 - Se o cliente quiser agendar, colete: serviço desejado, profissional preferido, data e horário.
 - Confirme todos os dados antes de finalizar.
