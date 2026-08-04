@@ -16,6 +16,7 @@ import {
   ShoppingCart,
   CreditCard,
   Lock,
+  Zap,
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,6 +31,7 @@ import AvisoGlobalBanner from "@/components/AvisoGlobalBanner";
 const navItems: { to: string; icon: any; label: string; end?: boolean; minPlan?: PlanName }[] = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Painel", end: true },
   { to: "/dashboard/agenda", icon: Calendar, label: "Agenda" },
+  { to: "/dashboard/atendimento", icon: Zap, label: "Atendimento" },
   { to: "/dashboard/clientes", icon: Users, label: "Clientes" },
   { to: "/dashboard/profissionais", icon: UserRound, label: "Profissionais" },
   { to: "/dashboard/servicos", icon: Scissors, label: "Serviços" },

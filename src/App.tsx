@@ -12,6 +12,7 @@ import BoasVindasSalao from "./pages/BoasVindasSalao";
 import DashboardLayout from "./components/DashboardLayout";
 import DashboardHome from "./pages/DashboardHome";
 import Agenda from "./pages/Agenda";
+import AtendimentoRapido from "./pages/AtendimentoRapido";
 import Clientes from "./pages/Clientes";
 import Profissionais from "./pages/Profissionais";
 import ProfissionalDetalhe from "./pages/ProfissionalDetalhe";
@@ -76,6 +77,7 @@ const App = () => {
                 >
                   <Route index element={<DashboardHome />} />
                   <Route path="agenda" element={<Agenda />} />
+                  <Route path="atendimento" element={<AtendimentoRapido />} />
                   <Route path="clientes" element={<Clientes />} />
                   <Route path="clientes/:id" element={<ClienteDetalhe />} />
                   <Route path="profissionais" element={<Profissionais />} />
