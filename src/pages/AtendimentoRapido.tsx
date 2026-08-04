@@ -14,6 +14,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Plus, Trash2, Zap, Loader2, UserPlus, Scissors, Package } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const brl = (cents: number) =>
   (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -186,7 +187,7 @@ const AtendimentoRapido = () => {
       return;
     }
     if (serviceItems.length === 0 && productItems.length === 0) {
-      toast({ title: "Adicione ao menos um serviço ou produto", variant: "destructive" });
+      toast({ title: "Adicione pelo menos um serviço à comanda antes de finalizar.", variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -325,10 +326,20 @@ const AtendimentoRapido = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Button onClick={addService} disabled={!pickService} className="sm:w-auto">
+              <Button
+                onClick={addService}
+                disabled={!pickService}
+                className={cn(
+                  "sm:w-auto transition-all duration-300",
+                  pickService && "animate-pulse bg-primary/90 hover:bg-primary"
+                )}
+              >
                 <Plus className="h-4 w-4 mr-1" /> Adicionar
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Selecione o serviço e clique em Adicionar para incluir na comanda.
+            </p>
             {serviceItems.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhum serviço na comanda.</p>
             ) : (
@@ -355,9 +366,14 @@ const AtendimentoRapido = () => {
           {/* Produtos */}
           {canProducts && (
             <section className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Package className="h-4 w-4 text-primary" /> Produtos
-              </h2>
+              <div>
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <Package className="h-4 w-4 text-primary" /> Produtos (opcional)
+                </h2>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Adicione produtos apenas se o cliente for comprar algo. Não é obrigatório.
+                </p>
+              </div>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Select value={pickProduct} onValueChange={setPickProduct}>
                   <SelectTrigger className="border-2">
@@ -443,10 +459,20 @@ const AtendimentoRapido = () => {
               </Select>
             </div>
 
-            <Button className="w-full" size="lg" onClick={handleFinalizar} disabled={saving}>
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={handleFinalizar}
+              disabled={saving || (serviceItems.length === 0 && productItems.length === 0)}
+            >
               {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Zap className="h-4 w-4 mr-2" />}
               Finalizar atendimento
             </Button>
+            {serviceItems.length === 0 && productItems.length === 0 && (
+              <p className="text-xs text-center text-muted-foreground">
+                Adicione um serviço para finalizar.
+              </p>
+            )}
             <Button variant="outline" className="w-full" onClick={resetComanda} disabled={saving}>
               Limpar comanda
             </Button>
