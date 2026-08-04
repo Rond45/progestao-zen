@@ -447,6 +447,16 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
     let reply = aiMessage?.content || "";
 
     // Helper: create appointment from resolved service/professional
+    const friendlyAptError = (msg: string) => {
+      if (/Conflito/i.test(msg)) {
+        return "Ops, esse horário acabou de ser preenchido! Posso te oferecer outro horário próximo?";
+      }
+      if (/jornada/i.test(msg)) {
+        return `Esse horário está fora do nosso expediente. Nosso atendimento é ${workingHours}. Quer escolher outro horário?`;
+      }
+      return "Tive um probleminha ao registrar. Pode confirmar o horário novamente, por favor?";
+    };
+
     const createAppointment = async (service: any, pro: any, date: string, time: string) => {
       // Rondônia: offset fixo -04:00 (sem horário de verão)
       const startsAt = new Date(`${date}T${time}:00-04:00`);
@@ -518,7 +528,7 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
         const aptError = await createAppointment(service, pro, date, time);
         if (aptError) {
           console.error("Appointment error (tool):", aptError);
-          reply = `Não consegui registrar o horário: ${aptError.message?.includes("Conflito") || aptError.message?.includes("jornada") ? aptError.message : "houve um erro no sistema"}. Podemos tentar outro horário?`;
+          reply = friendlyAptError(aptError.message || "");
         } else {
           reply = `✅ Agendamento confirmado!\n📋 ${service.name} com ${pro.name}\n📅 ${new Date(`${date}T${time}:00-04:00`).toLocaleDateString("pt-BR", { timeZone: "America/Porto_Velho" })} às ${time}\n\nTe esperamos! 😊`;
         }
