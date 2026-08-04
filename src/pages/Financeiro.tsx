@@ -40,10 +40,33 @@ const Financeiro = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("service_executions")
-        .select("*, professionals(name, compensation_type, commission_percentage, salary_cents), services(name)")
+        .select("*, professionals(name), services(name)")
         .eq("business_id", businessId!);
       if (error) throw error;
       return data;
+    },
+    enabled: !!businessId && authenticated,
+  });
+
+  const { data: commissionMap = {} } = useQuery({
+    queryKey: ["professionals-commissions", businessId],
+    queryFn: async () => {
+      const { data: profs, error } = await supabase
+        .from("professionals")
+        .select("id, name, compensation_type")
+        .eq("business_id", businessId!);
+      if (error) throw error;
+      const map: Record<string, { compensation_type: string | null; commission_percentage: number }> = {};
+      await Promise.all(
+        (profs || []).map(async (p: any) => {
+          let pct = 0;
+          const { data: comp } = await supabase.rpc("get_professional_compensation", { _professional_id: p.id });
+          const row: any = Array.isArray(comp) ? comp[0] : comp;
+          if (row?.commission_percentage != null) pct = Number(row.commission_percentage);
+          map[p.id] = { compensation_type: row?.compensation_type ?? p.compensation_type, commission_percentage: pct };
+        })
+      );
+      return map;
     },
     enabled: !!businessId && authenticated,
   });
@@ -124,7 +147,7 @@ const Financeiro = () => {
   const receitaTotal = totalServicos + totalProdutos;
 
   const totalComissoes = executions.reduce((s: number, e: any) => {
-    const p = e.professionals;
+    const p = (commissionMap as any)[e.professional_id];
     if (p?.compensation_type === "percentage") {
       return s + Math.round(e.service_price_cents * ((p.commission_percentage || 0) / 100));
     }
@@ -142,8 +165,9 @@ const Financeiro = () => {
     const existing = profMap.get(pName) || { name: pName, services: 0, revenue: 0, commission: 0 };
     existing.services++;
     existing.revenue += e.service_price_cents;
-    if (e.professionals?.compensation_type === "percentage") {
-      existing.commission += Math.round(e.service_price_cents * ((e.professionals.commission_percentage || 0) / 100));
+    const comp = (commissionMap as any)[e.professional_id];
+    if (comp?.compensation_type === "percentage") {
+      existing.commission += Math.round(e.service_price_cents * ((comp.commission_percentage || 0) / 100));
     }
     profMap.set(pName, existing);
   });
