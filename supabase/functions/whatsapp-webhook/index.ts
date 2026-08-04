@@ -519,7 +519,6 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
             type: "function",
             function: {
               name: "salvar_nome_cliente",
-*** PLACEHOLDER ***
               description:
                 "Salva o nome do cliente assim que ele se identificar ou informar como se chama, de qualquer forma que seja. Use sempre que descobrir o nome do cliente na conversa.",
               parameters: {
@@ -528,6 +527,23 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
                   nome: { type: "string", description: "Primeiro nome (e sobrenome se houver) do cliente" },
                 },
                 required: ["nome"],
+                additionalProperties: false,
+              },
+            },
+          },
+          {
+            type: "function",
+            function: {
+              name: "cancelar_agendamento",
+              description:
+                "Cancela/desmarca um agendamento existente do cliente. Use quando o cliente pedir para desmarcar, cancelar ou remarcar um horário. Identifique pelo agendamento futuro do cliente.",
+              parameters: {
+                type: "object",
+                properties: {
+                  data: { type: "string", description: "Data do agendamento a cancelar, formato YYYY-MM-DD" },
+                  horario: { type: "string", description: "Horário do agendamento a cancelar, formato HH:MM" },
+                },
+                required: ["data", "horario"],
                 additionalProperties: false,
               },
             },
