@@ -563,7 +563,7 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
         const aptError = await createAppointment(service, pro, date, time);
         if (aptError) {
           console.error("Appointment error:", aptError);
-          reply = reply.replace(/\[AGENDAR\].*/, "") + "\n\nHouve um erro ao criar o agendamento. Por favor, tente novamente ou entre em contato diretamente.";
+          reply = reply.replace(/\[AGENDAR\].*/, "").trim() + "\n\n" + friendlyAptError(aptError.message || "");
         } else {
           reply = reply.replace(/\[AGENDAR\].*/, "") + `\n\n✅ Agendamento confirmado!\n📋 ${service.name} com ${pro.name}\n📅 ${new Date(`${date}T${time}:00-04:00`).toLocaleDateString("pt-BR", { timeZone: "America/Porto_Velho" })} às ${time}\n\nTe esperamos! 😊`;
         }
