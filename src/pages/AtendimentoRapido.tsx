@@ -326,10 +326,20 @@ const AtendimentoRapido = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Button onClick={addService} disabled={!pickService} className="sm:w-auto">
+              <Button
+                onClick={addService}
+                disabled={!pickService}
+                className={cn(
+                  "sm:w-auto transition-all duration-300",
+                  pickService && "animate-pulse bg-primary/90 hover:bg-primary"
+                )}
+              >
                 <Plus className="h-4 w-4 mr-1" /> Adicionar
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Selecione o serviço e clique em Adicionar para incluir na comanda.
+            </p>
             {serviceItems.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhum serviço na comanda.</p>
             ) : (
