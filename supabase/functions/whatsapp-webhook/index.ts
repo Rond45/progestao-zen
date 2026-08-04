@@ -150,7 +150,21 @@ Deno.serve(async (req) => {
       messageData.message?.extendedTextMessage?.text ||
       messageData.body || "";
 
-    if (!remotePhone || !messageText || messageData.key?.fromMe) {
+    // Detect non-text media type when there is no text
+    const msgObj = messageData.message || {};
+    let mediaType: string | null = null;
+    if (!messageText) {
+      if (msgObj.audioMessage || msgObj.pttMessage) mediaType = "audio";
+      else if (msgObj.imageMessage) mediaType = "imagem";
+      else if (msgObj.videoMessage) mediaType = "video";
+      else if (msgObj.stickerMessage) mediaType = "figurinha";
+      else if (msgObj.documentMessage) mediaType = "documento";
+      else if (msgObj.locationMessage) mediaType = "localizacao";
+      else if (msgObj.contactMessage || msgObj.contactsArrayMessage) mediaType = "contato";
+    }
+    if (mediaType) console.log("[MEDIA] Mensagem não-textual recebida:", mediaType, remotePhone);
+
+    if (!remotePhone || messageData.key?.fromMe || (!messageText && !mediaType)) {
       return new Response(JSON.stringify({ ok: true, skipped: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -264,9 +278,51 @@ Deno.serve(async (req) => {
       business_id: businessId,
       conversation_id: conversation!.id,
       direction: "inbound",
-      body: messageText,
+      body: messageText || `[${mediaType}]`,
       from_phone: remotePhone,
     });
+
+    // Handle non-text media: reply politely asking for text, without calling OpenAI
+    if (!messageText && mediaType) {
+      const mediaReplies: Record<string, string> = {
+        audio: "Oi! No momento eu ainda não consigo ouvir áudios 🙈 Pode me escrever por mensagem, por favor? Assim consigo te ajudar rapidinho!",
+        imagem: "Recebi sua imagem, mas ainda não consigo visualizar fotos por aqui. Pode me contar por escrito o que você precisa? 😊",
+        video: "Recebi seu vídeo, mas ainda não consigo assistir por aqui. Pode me escrever o que precisa, por favor?",
+        figurinha: "Hehe 😄 Pode me escrever o que você precisa? Assim te ajudo melhor!",
+        documento: "Recebi seu documento, mas ainda não consigo abrir arquivos por aqui. Pode me dizer por escrito o que precisa?",
+        localizacao: "Recebi sua localização! Se precisar de ajuda com agendamento ou informações, é só me escrever 😊",
+        contato: "Pode me escrever o que você precisa, por favor? Assim consigo te ajudar melhor 😊",
+      };
+      const mediaReply = mediaReplies[mediaType] ||
+        "Pode me escrever o que você precisa, por favor? Assim consigo te ajudar melhor 😊";
+
+      await supabase.from("messages").insert({
+        business_id: businessId,
+        conversation_id: conversation!.id,
+        direction: "outbound",
+        body: mediaReply,
+        to_phone: remotePhone,
+      });
+
+      await supabase
+        .from("conversations")
+        .update({ last_message_at: new Date().toISOString(), status: "open" })
+        .eq("id", conversation!.id);
+
+      const mediaEvoUrl = Deno.env.get("EVOLUTION_API_URL")?.replace(/\/$/, "");
+      const mediaEvoKey = Deno.env.get("EVOLUTION_API_KEY");
+      if (mediaEvoUrl && mediaEvoKey) {
+        await fetch(`${mediaEvoUrl}/message/sendText/${(conn as any).instance_name}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", apikey: mediaEvoKey },
+          body: JSON.stringify({ number: remotePhone, text: mediaReply }),
+        });
+      }
+
+      return new Response(JSON.stringify({ ok: true, mediaType }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Try to auto-detect a name in this message if we still don't have one
     if (!hasRealName) {
