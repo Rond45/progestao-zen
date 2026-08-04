@@ -245,6 +245,17 @@ Deno.serve(async (req) => {
       .limit(10);
 
     const historyCount = clientHistory?.length ?? 0;
+
+    // Fetch this client's ACTIVE FUTURE appointments (used for cancellation)
+    const { data: futureApts } = await supabase
+      .from("appointments")
+      .select("id, starts_at, status, services(name), professionals(name)")
+      .eq("business_id", businessId)
+      .eq("client_id", client!.id)
+      .neq("status", "cancelled")
+      .gte("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: true });
+
     // Só é recorrente se tivermos um nome real; sem nome => tratar como primeiro contato
     const isReturning = hasRealName === true && (historyCount > 0 || !isFirstContact);
 
@@ -353,6 +364,28 @@ Deno.serve(async (req) => {
       })
       .join("\n") || "Sem histórico anterior.";
 
+    // Format a timestamp in Rondônia local time (UTC-4)
+    const fmtRO = (iso: string) => {
+      const d = new Date(iso);
+      const dateStr = d.toLocaleDateString("pt-BR", { timeZone: "America/Porto_Velho" });
+      const timeStr = d.toLocaleTimeString("pt-BR", {
+        timeZone: "America/Porto_Velho",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const isoDate = new Date(d.getTime() - 4 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      return { dateStr, timeStr, isoDate };
+    };
+
+    const futureAptsText = (futureApts ?? []).length
+      ? (futureApts ?? [])
+          .map((a: any) => {
+            const f = fmtRO(a.starts_at);
+            return `- ${f.dateStr} (${f.isoDate}) às ${f.timeStr} — ${a.services?.name ?? "-"} com ${a.professionals?.name ?? "-"}`;
+          })
+          .join("\n")
+      : "Nenhum agendamento futuro";
+
     const aiName = (conn as any).ai_name || platformCfg.default_ai_name || "Atendente";
     const workingHours =
       (conn as any).working_hours ||
@@ -423,6 +456,9 @@ ${aptsText}
 
 ${clientBlock}
 
+SEUS AGENDAMENTOS FUTUROS (deste cliente, ativos):
+${futureAptsText}
+
 INSTRUÇÕES DE COMPORTAMENTO PARA ESTE CLIENTE:
 ${behaviorRules}
 
@@ -431,6 +467,7 @@ INSTRUÇÕES IMPORTANTES:
 - Ao invés de fazer perguntas abertas, ofereça 2 ou 3 opções concretas quando possível (ex: horários disponíveis reais com base na agenda acima).
 - Se o cliente quiser agendar, colete: serviço desejado, profissional preferido, data e horário.
 - Confirme todos os dados antes de finalizar.
+- Se o cliente quiser cancelar ou desmarcar, use a função cancelar_agendamento com a data e horário do agendamento futuro dele (veja SEUS AGENDAMENTOS FUTUROS acima). NUNCA ofereça horários para marcar quando o cliente pede para cancelar.
 - REGRA CRÍTICA DE AGENDAMENTO: Sempre que você confirmar um horário com o cliente (quando ele aceitar dia, horário e serviço), você é OBRIGADA a incluir na MESMA mensagem, em uma linha separada ao final, o comando técnico EXATO:
 [AGENDAR] nome_do_serviço | nome_do_profissional | data_YYYY-MM-DD | horário_HH:MM
 Esse comando é invisível para o cliente (o sistema o remove antes de enviar). Se você confirmar um agendamento SEM emitir esse comando, o horário NÃO será registrado e o cliente ficará sem atendimento. Portanto, NUNCA confirme um agendamento sem incluir a linha [AGENDAR] com os dados reais. Use os nomes EXATOS dos serviços e profissionais listados acima. Exemplo de confirmação correta:
@@ -494,6 +531,23 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
               },
             },
           },
+          {
+            type: "function",
+            function: {
+              name: "cancelar_agendamento",
+              description:
+                "Cancela/desmarca um agendamento existente do cliente. Use quando o cliente pedir para desmarcar, cancelar ou remarcar um horário. Identifique pelo agendamento futuro do cliente.",
+              parameters: {
+                type: "object",
+                properties: {
+                  data: { type: "string", description: "Data do agendamento a cancelar, formato YYYY-MM-DD" },
+                  horario: { type: "string", description: "Horário do agendamento a cancelar, formato HH:MM" },
+                },
+                required: ["data", "horario"],
+                additionalProperties: false,
+              },
+            },
+          },
         ],
       }),
     });
@@ -534,6 +588,7 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
     const toolCalls = (aiMessage?.tool_calls ?? []) as any[];
     const nameCall = toolCalls.find((t: any) => t.function?.name === "salvar_nome_cliente");
     const toolCall = toolCalls.find((t: any) => t.function?.name === "criar_agendamento");
+    const cancelCall = toolCalls.find((t: any) => t.function?.name === "cancelar_agendamento");
 
     if (nameCall) {
       try {
@@ -553,6 +608,48 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
     }
 
     let handledByTool = false;
+
+    if (cancelCall) {
+      handledByTool = true;
+      let cArgs: any = {};
+      try {
+        cArgs = JSON.parse(cancelCall.function?.arguments || "{}");
+      } catch (err) {
+        console.error("[CANCEL_TOOL_PARSE_ERROR]", cancelCall.function?.arguments, err);
+      }
+      const cDate = String(cArgs.data ?? "").trim();
+      const cTime = String(cArgs.horario ?? "").trim().padStart(5, "0");
+      const list = futureApts ?? [];
+
+      if (!list.length) {
+        reply =
+          "Não encontrei nenhum agendamento ativo no seu nome para cancelar. Se quiser marcar um horário, é só me avisar 😊";
+      } else {
+        let apt = list.find((a: any) => {
+          const f = fmtRO(a.starts_at);
+          return f.isoDate === cDate && f.timeStr === cTime;
+        });
+        if (!apt && list.length === 1) apt = list[0];
+
+        if (!apt) {
+          reply =
+            "Não encontrei esse agendamento no seu nome. Pode confirmar a data e o horário que deseja cancelar?";
+        } else {
+          const { error: cancelError } = await supabase
+            .from("appointments")
+            .update({ status: "cancelled" })
+            .eq("id", (apt as any).id);
+          if (cancelError) {
+            console.error("[CANCEL_ERROR]", cancelError);
+            reply = "Tive um probleminha ao cancelar. Pode confirmar a data e o horário novamente, por favor?";
+          } else {
+            const f = fmtRO((apt as any).starts_at);
+            reply = `Pronto! Seu agendamento de ${(apt as any).services?.name ?? "serviço"} em ${f.dateStr} às ${f.timeStr} foi cancelado. Se quiser marcar outro horário, é só me avisar 😊`;
+          }
+        }
+      }
+    }
+
     if (toolCall) {
       handledByTool = true;
       let args: any = {};
