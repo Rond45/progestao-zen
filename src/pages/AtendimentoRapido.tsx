@@ -366,9 +366,14 @@ const AtendimentoRapido = () => {
           {/* Produtos */}
           {canProducts && (
             <section className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Package className="h-4 w-4 text-primary" /> Produtos
-              </h2>
+              <div>
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <Package className="h-4 w-4 text-primary" /> Produtos (opcional)
+                </h2>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Adicione produtos apenas se o cliente for comprar algo. Não é obrigatório.
+                </p>
+              </div>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Select value={pickProduct} onValueChange={setPickProduct}>
                   <SelectTrigger className="border-2">
