@@ -12,6 +12,99 @@ function renderPromptTemplate(
   return tpl.replace(/\{([a-zA-Z_]+)\}/g, (_, k) => vars[k] ?? "");
 }
 
+// ===== Fuso de Rondônia: UTC-4 fixo (sem horário de verão) =====
+const RO_OFFSET_MS = 4 * 60 * 60 * 1000;
+const DAY_KEYS = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
+
+/** Data/hora local de Rondônia representada como campos UTC (para leitura fácil). */
+function toLocalRO(d: Date): Date {
+  return new Date(d.getTime() - RO_OFFSET_MS);
+}
+
+/** Constrói um instante UTC a partir de data (YYYY-MM-DD) e hora (HH:MM) locais RO. */
+function fromLocalRO(dateStr: string, timeStr: string): Date {
+  return new Date(`${dateStr}T${timeStr}:00-04:00`);
+}
+
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function localDateStr(d: Date): string {
+  const l = toLocalRO(d);
+  return `${l.getUTCFullYear()}-${pad2(l.getUTCMonth() + 1)}-${pad2(l.getUTCDate())}`;
+}
+
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(":").map((x) => parseInt(x, 10));
+  return h * 60 + (m || 0);
+}
+
+function minutesToTime(min: number): string {
+  return `${pad2(Math.floor(min / 60))}:${pad2(min % 60)}`;
+}
+
+/**
+ * Calcula horários livres dos próximos 7 dias considerando jornada (working_hours),
+ * agendamentos existentes e quantidade de profissionais ativos.
+ */
+function buildAvailabilityText(
+  workingHours: any,
+  appointments: any[],
+  professionalsCount: number,
+  serviceDurationMinutes = 30,
+): string {
+  const pros = Math.max(1, professionalsCount);
+  const now = new Date();
+  const lines: string[] = [];
+
+  for (let i = 0; i < 7; i++) {
+    const dayRef = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
+    const dateStr = localDateStr(dayRef);
+    const local = toLocalRO(dayRef);
+    const dayKey = DAY_KEYS[local.getUTCDay()];
+    const label =
+      i === 0 ? "Hoje" : i === 1 ? "Amanhã" : `${pad2(local.getUTCDate())}/${pad2(local.getUTCMonth() + 1)}`;
+    const prettyDate = `${pad2(local.getUTCDate())}/${pad2(local.getUTCMonth() + 1)}`;
+    const cfg = workingHours?.[dayKey];
+
+    if (!cfg || cfg.enabled !== true || !cfg.open || !cfg.close) {
+      lines.push(`${label} (${prettyDate}): Fechado`);
+      continue;
+    }
+
+    const openMin = timeToMinutes(cfg.open);
+    const closeMin = timeToMinutes(cfg.close);
+    const free: string[] = [];
+
+    for (let m = openMin; m + serviceDurationMinutes <= closeMin; m += 30) {
+      const slotStart = fromLocalRO(dateStr, minutesToTime(m));
+      const slotEnd = new Date(slotStart.getTime() + serviceDurationMinutes * 60000);
+
+      // Já passou (para hoje)
+      if (slotStart.getTime() <= now.getTime()) continue;
+
+      const overlapping = appointments.filter((a: any) => {
+        const s = new Date(a.starts_at).getTime();
+        const e = new Date(a.ends_at).getTime();
+        return s < slotEnd.getTime() && e > slotStart.getTime();
+      });
+
+      // Só indisponível se TODOS os profissionais estiverem ocupados
+      const busyPros = new Set(overlapping.map((a: any) => a.professional_id));
+      if (busyPros.size >= pros) continue;
+
+      free.push(minutesToTime(m));
+    }
+
+    lines.push(
+      `${label} (${prettyDate}): ${free.length ? free.join(", ") : "Sem horários livres"}`,
+    );
+  }
+
+  return lines.join("\n");
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
