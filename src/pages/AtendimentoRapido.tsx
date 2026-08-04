@@ -459,10 +459,20 @@ const AtendimentoRapido = () => {
               </Select>
             </div>
 
-            <Button className="w-full" size="lg" onClick={handleFinalizar} disabled={saving}>
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={handleFinalizar}
+              disabled={saving || (serviceItems.length === 0 && productItems.length === 0)}
+            >
               {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Zap className="h-4 w-4 mr-2" />}
               Finalizar atendimento
             </Button>
+            {serviceItems.length === 0 && productItems.length === 0 && (
+              <p className="text-xs text-center text-muted-foreground">
+                Adicione um serviço para finalizar.
+              </p>
+            )}
             <Button variant="outline" className="w-full" onClick={resetComanda} disabled={saving}>
               Limpar comanda
             </Button>
