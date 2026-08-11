@@ -105,6 +105,32 @@ function buildAvailabilityText(
   return lines.join("\n");
 }
 
+/** Envia mensagem de texto pela WhatsApp Cloud API (Meta). */
+async function sendWhatsAppMessage(to: string, text: string, phoneNumberId?: string | null) {
+  const token = Deno.env.get("WHATSAPP_CLOUD_TOKEN");
+  const pnid = phoneNumberId || Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+  if (!token || !pnid) {
+    console.error("[CLOUD_API] Token ou phone_number_id ausente. Envio abortado.");
+    return;
+  }
+  try {
+    const res = await fetch(`https://graph.facebook.com/v21.0/${pnid}/messages`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: String(to).replace(/\D/g, ""),
+        type: "text",
+        text: { body: text },
+      }),
+    });
+    const out = await res.text();
+    if (!res.ok) console.error(`[CLOUD_API] status=${res.status}`, out.substring(0, 400));
+  } catch (e) {
+    console.error("[CLOUD_API] erro de envio:", e);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -115,75 +141,81 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
+  // ===== Verificação do webhook (GET da Meta) =====
+  if (req.method === "GET") {
+    const url = new URL(req.url);
+    const mode = url.searchParams.get("hub.mode");
+    const token = url.searchParams.get("hub.verify_token");
+    const challenge = url.searchParams.get("hub.challenge");
+    const expected = Deno.env.get("WHATSAPP_VERIFY_TOKEN");
+    if (mode === "subscribe" && expected && token === expected && challenge) {
+      return new Response(challenge, { status: 200, headers: { "Content-Type": "text/plain" } });
+    }
+    console.error("[VERIFY] Token de verificação inválido.");
+    return new Response("Forbidden", { status: 403 });
+  }
+
   try {
     const body = await req.json();
 
-    // Extract data from Evolution API webhook
-    const event = body.event || body.type;
-    const instanceName = body.instance || body.instanceName || body.data?.instance;
+    // ===== Payload WhatsApp Cloud API (Meta) =====
+    const value = body?.entry?.[0]?.changes?.[0]?.value;
+    const phoneNumberId: string | undefined = value?.metadata?.phone_number_id;
 
-    // Handle connection status updates
-    if (event === "connection.update" || event === "status.instance") {
-      const state = body.data?.state || body.data?.status;
-      if (state === "open" || state === "connected") {
-        await supabase
-          .from("whatsapp_connections")
-          .update({ status: "connected", connected_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-          .eq("instance_name", instanceName);
-      }
-      return new Response(JSON.stringify({ ok: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Only process incoming messages
-    if (event !== "messages.upsert" && event !== "message") {
+    // Status updates (entrega/leitura) — ignorar
+    if (!value || (value.statuses && !value.messages)) {
       return new Response(JSON.stringify({ ok: true, skipped: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const messageData = body.data || body;
-    const remotePhone = messageData.key?.remoteJid?.replace("@s.whatsapp.net", "") ||
-      messageData.from?.replace("@s.whatsapp.net", "");
-    const messageText = messageData.message?.conversation ||
-      messageData.message?.extendedTextMessage?.text ||
-      messageData.body || "";
-
-    // Detect non-text media type when there is no text
-    const msgObj = messageData.message || {};
-    let mediaType: string | null = null;
-    if (!messageText) {
-      if (msgObj.audioMessage || msgObj.pttMessage) mediaType = "audio";
-      else if (msgObj.imageMessage) mediaType = "imagem";
-      else if (msgObj.videoMessage) mediaType = "video";
-      else if (msgObj.stickerMessage) mediaType = "figurinha";
-      else if (msgObj.documentMessage) mediaType = "documento";
-      else if (msgObj.locationMessage) mediaType = "localizacao";
-      else if (msgObj.contactMessage || msgObj.contactsArrayMessage) mediaType = "contato";
+    const message = value.messages?.[0];
+    if (!message || !phoneNumberId) {
+      return new Response(JSON.stringify({ ok: true, skipped: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+
+    const remotePhone = String(message.from || "").replace(/\D/g, "");
+    const messageText: string =
+      message.type === "text" ? (message.text?.body || "") : (message.button?.text || message.interactive?.list_reply?.title || "");
+
+    // Tipos de mídia (formato Meta)
+    const mediaMap: Record<string, string> = {
+      audio: "audio",
+      voice: "audio",
+      image: "imagem",
+      video: "video",
+      sticker: "figurinha",
+      document: "documento",
+      location: "localizacao",
+      contacts: "contato",
+    };
+    const mediaType: string | null = messageText ? null : (mediaMap[message.type] || null);
     if (mediaType) console.log("[MEDIA] Mensagem não-textual recebida:", mediaType, remotePhone);
 
-    if (!remotePhone || messageData.key?.fromMe || (!messageText && !mediaType)) {
+    if (!remotePhone || (!messageText && !mediaType)) {
       return new Response(JSON.stringify({ ok: true, skipped: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Get connection config
+    // Roteamento do negócio por phone_number_id
     const { data: conn } = await supabase
       .from("whatsapp_connections")
       .select("*")
-      .eq("instance_name", instanceName)
-      .single();
+      .eq("phone_number_id", phoneNumberId)
+      .maybeSingle();
 
     if (!conn) {
-      console.error("No connection found for instance:", instanceName);
-      return new Response(JSON.stringify({ error: "Instance not found" }), {
+      console.error("No connection found for phone_number_id:", phoneNumberId);
+      return new Response(JSON.stringify({ error: "Connection not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const sendPhoneNumberId = (conn as any).phone_number_id || phoneNumberId;
 
     const businessId = conn.business_id;
 
