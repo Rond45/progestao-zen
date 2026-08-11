@@ -352,15 +352,7 @@ Deno.serve(async (req) => {
         .update({ last_message_at: new Date().toISOString(), status: "open" })
         .eq("id", conversation!.id);
 
-      const mediaEvoUrl = Deno.env.get("EVOLUTION_API_URL")?.replace(/\/$/, "");
-      const mediaEvoKey = Deno.env.get("EVOLUTION_API_KEY");
-      if (mediaEvoUrl && mediaEvoKey) {
-        await fetch(`${mediaEvoUrl}/message/sendText/${(conn as any).instance_name}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", apikey: mediaEvoKey },
-          body: JSON.stringify({ number: remotePhone, text: mediaReply }),
-        });
-      }
+      await sendWhatsAppMessage(remotePhone, mediaReply, sendPhoneNumberId);
 
       return new Response(JSON.stringify({ ok: true, mediaType }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -776,23 +768,8 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
       .update({ last_message_at: new Date().toISOString(), status: "open" })
       .eq("id", conversation!.id);
 
-    // Send reply via Evolution API
-    const evolutionUrl = Deno.env.get("EVOLUTION_API_URL");
-    const evolutionKey = Deno.env.get("EVOLUTION_API_KEY");
-    const baseUrl = evolutionUrl?.replace(/\/$/, "");
-    if (baseUrl && evolutionKey) {
-      await fetch(`${baseUrl}/message/sendText/${(conn as any).instance_name}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: evolutionKey,
-        },
-        body: JSON.stringify({
-          number: remotePhone,
-          text: reply,
-        }),
-      });
-    }
+    // Send reply via WhatsApp Cloud API (Meta)
+    await sendWhatsAppMessage(remotePhone, reply, sendPhoneNumberId);
 
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
