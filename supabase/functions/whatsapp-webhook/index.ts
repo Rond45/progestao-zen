@@ -106,8 +106,13 @@ function buildAvailabilityText(
 }
 
 /** Envia mensagem de texto pela WhatsApp Cloud API (Meta). */
-async function sendWhatsAppMessage(to: string, text: string, phoneNumberId?: string | null) {
-  const token = Deno.env.get("WHATSAPP_CLOUD_TOKEN");
+async function sendWhatsAppMessage(
+  to: string,
+  text: string,
+  phoneNumberId?: string | null,
+  accessToken?: string | null,
+) {
+  const token = accessToken || Deno.env.get("WHATSAPP_CLOUD_TOKEN");
   const pnid = phoneNumberId || Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
   if (!token || !pnid) {
     console.error("[CLOUD_API] Token ou phone_number_id ausente. Envio abortado.");
@@ -216,6 +221,7 @@ Deno.serve(async (req) => {
     }
 
     const sendPhoneNumberId = (conn as any).phone_number_id || phoneNumberId;
+    const sendAccessToken: string | null = (conn as any).access_token || null;
 
     const businessId = conn.business_id;
 
@@ -352,7 +358,7 @@ Deno.serve(async (req) => {
         .update({ last_message_at: new Date().toISOString(), status: "open" })
         .eq("id", conversation!.id);
 
-      await sendWhatsAppMessage(remotePhone, mediaReply, sendPhoneNumberId);
+      await sendWhatsAppMessage(remotePhone, mediaReply, sendPhoneNumberId, sendAccessToken);
 
       return new Response(JSON.stringify({ ok: true, mediaType }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -769,7 +775,7 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
       .eq("id", conversation!.id);
 
     // Send reply via WhatsApp Cloud API (Meta)
-    await sendWhatsAppMessage(remotePhone, reply, sendPhoneNumberId);
+    await sendWhatsAppMessage(remotePhone, reply, sendPhoneNumberId, sendAccessToken);
 
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -832,6 +832,7 @@ export type Database = {
       }
       whatsapp_connections: {
         Row: {
+          access_token: string | null
           ai_name: string | null
           business_id: string
           connected_at: string | null
@@ -848,6 +849,7 @@ export type Database = {
           working_hours: string | null
         }
         Insert: {
+          access_token?: string | null
           ai_name?: string | null
           business_id: string
           connected_at?: string | null
@@ -864,6 +866,7 @@ export type Database = {
           working_hours?: string | null
         }
         Update: {
+          access_token?: string | null
           ai_name?: string | null
           business_id?: string
           connected_at?: string | null
