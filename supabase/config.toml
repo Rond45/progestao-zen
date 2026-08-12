@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.verificar-vencimentos]
 verify_jwt = false
+
+[functions.whatsapp-embedded-signup]
+verify_jwt = true

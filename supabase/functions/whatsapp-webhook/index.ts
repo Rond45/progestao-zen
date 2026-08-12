@@ -221,6 +221,7 @@ Deno.serve(async (req) => {
     }
 
     const sendPhoneNumberId = (conn as any).phone_number_id || phoneNumberId;
+    const sendAccessToken: string | null = (conn as any).access_token || null;
 
     const businessId = conn.business_id;
 
@@ -357,7 +358,7 @@ Deno.serve(async (req) => {
         .update({ last_message_at: new Date().toISOString(), status: "open" })
         .eq("id", conversation!.id);
 
-      await sendWhatsAppMessage(remotePhone, mediaReply, sendPhoneNumberId);
+      await sendWhatsAppMessage(remotePhone, mediaReply, sendPhoneNumberId, sendAccessToken);
 
       return new Response(JSON.stringify({ ok: true, mediaType }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -774,7 +775,7 @@ Esse comando é invisível para o cliente (o sistema o remove antes de enviar). 
       .eq("id", conversation!.id);
 
     // Send reply via WhatsApp Cloud API (Meta)
-    await sendWhatsAppMessage(remotePhone, reply, sendPhoneNumberId);
+    await sendWhatsAppMessage(remotePhone, reply, sendPhoneNumberId, sendAccessToken);
 
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
