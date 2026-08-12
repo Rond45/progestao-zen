@@ -106,8 +106,13 @@ function buildAvailabilityText(
 }
 
 /** Envia mensagem de texto pela WhatsApp Cloud API (Meta). */
-async function sendWhatsAppMessage(to: string, text: string, phoneNumberId?: string | null) {
-  const token = Deno.env.get("WHATSAPP_CLOUD_TOKEN");
+async function sendWhatsAppMessage(
+  to: string,
+  text: string,
+  phoneNumberId?: string | null,
+  accessToken?: string | null,
+) {
+  const token = accessToken || Deno.env.get("WHATSAPP_CLOUD_TOKEN");
   const pnid = phoneNumberId || Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
   if (!token || !pnid) {
     console.error("[CLOUD_API] Token ou phone_number_id ausente. Envio abortado.");
