@@ -23,5 +23,16 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/pt_BR/sdk.js"></script>
+    <script>
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId: '2244247326025989',
+          cookie: true,
+          xfbml: true,
+          version: 'v21.0'
+        });
+      };
+    </script>
   </body>
 </html>
