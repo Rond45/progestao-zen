@@ -115,6 +115,59 @@ export type Database = {
         }
         Relationships: []
       }
+      appointment_reminders: {
+        Row: {
+          appointment_id: string
+          business_id: string
+          error: string | null
+          id: string
+          kind: string
+          provider_message_id: string | null
+          responded_at: string | null
+          response: string | null
+          sent_at: string | null
+          status: string
+          template_name: string
+          to_phone: string
+        }
+        Insert: {
+          appointment_id: string
+          business_id: string
+          error?: string | null
+          id?: string
+          kind?: string
+          provider_message_id?: string | null
+          responded_at?: string | null
+          response?: string | null
+          sent_at?: string | null
+          status?: string
+          template_name: string
+          to_phone: string
+        }
+        Update: {
+          appointment_id?: string
+          business_id?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          provider_message_id?: string | null
+          responded_at?: string | null
+          response?: string | null
+          sent_at?: string | null
+          status?: string
+          template_name?: string
+          to_phone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_reminders_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           antifuro_accepted: boolean
@@ -229,6 +282,8 @@ export type Database = {
           name: string
           opening_time: string | null
           phone: string | null
+          reminder_hours_before: number
+          reminders_enabled: boolean
           vertical: Database["public"]["Enums"]["business_vertical"]
           working_hours: Json | null
         }
@@ -241,6 +296,8 @@ export type Database = {
           name: string
           opening_time?: string | null
           phone?: string | null
+          reminder_hours_before?: number
+          reminders_enabled?: boolean
           vertical?: Database["public"]["Enums"]["business_vertical"]
           working_hours?: Json | null
         }
@@ -253,6 +310,8 @@ export type Database = {
           name?: string
           opening_time?: string | null
           phone?: string | null
+          reminder_hours_before?: number
+          reminders_enabled?: boolean
           vertical?: Database["public"]["Enums"]["business_vertical"]
           working_hours?: Json | null
         }
@@ -268,6 +327,7 @@ export type Database = {
           name: string
           notes: string | null
           phone: string | null
+          whatsapp_opt_out: boolean
         }
         Insert: {
           avatar_url?: string | null
@@ -278,6 +338,7 @@ export type Database = {
           name: string
           notes?: string | null
           phone?: string | null
+          whatsapp_opt_out?: boolean
         }
         Update: {
           avatar_url?: string | null
@@ -288,6 +349,7 @@ export type Database = {
           name?: string
           notes?: string | null
           phone?: string | null
+          whatsapp_opt_out?: boolean
         }
         Relationships: [
           {
@@ -895,12 +957,67 @@ export type Database = {
           },
         ]
       }
+      whatsapp_templates: {
+        Row: {
+          body: string
+          body_examples: Json
+          buttons: Json
+          category: string
+          created_at: string
+          footer: string | null
+          id: string
+          language: string
+          meta_template_id: string | null
+          name: string
+          rejection_reason: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          body_examples?: Json
+          buttons?: Json
+          category?: string
+          created_at?: string
+          footer?: string | null
+          id?: string
+          language?: string
+          meta_template_id?: string | null
+          name: string
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          body_examples?: Json
+          buttons?: Json
+          category?: string
+          created_at?: string
+          footer?: string | null
+          id?: string
+          language?: string
+          meta_template_id?: string | null
+          name?: string
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       get_current_business_id: { Args: never; Returns: string }
+      get_my_reminder_usage: {
+        Args: never
+        Returns: {
+          cap: number
+          sent: number
+        }[]
+      }
       get_professional_compensation: {
         Args: { _professional_id: string }
         Returns: {
