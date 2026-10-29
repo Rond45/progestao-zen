@@ -34,7 +34,7 @@ const WhatsAppConfig = ({ businessId }: Props) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("whatsapp_connections")
-        .select("*")
+        .select("business_id, status, phone_number, phone_number_id, waba_id, connected_at, is_on_biz_app, ai_name, services_info, working_hours")
         .eq("business_id", businessId!)
         .maybeSingle();
       if (error) throw error;

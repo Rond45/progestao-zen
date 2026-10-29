@@ -101,6 +101,7 @@ const Landing = () => {
             <div className="flex items-center gap-4 text-xs">
               <a href="/termos" className="text-muted-foreground hover:text-foreground">Termos</a>
               <a href="/privacidade" className="text-muted-foreground hover:text-foreground">Privacidade</a>
+              <a href="/exclusao-de-dados" className="text-muted-foreground hover:text-foreground">Exclusão de dados</a>
               <a href="/suporte" className="text-muted-foreground hover:text-foreground">Suporte</a>
             </div>
 

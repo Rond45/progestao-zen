@@ -25,6 +25,7 @@ import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 import Termos from "./pages/Termos";
 import Privacidade from "./pages/Privacidade";
+import ExclusaoDeDados from "./pages/ExclusaoDeDados";
 import Suporte from "./pages/Suporte";
 import Planos from "./pages/Planos";
 import PlanosPublico from "./pages/PlanosPublico";
@@ -59,6 +60,7 @@ const App = () => {
                                                   {/* Páginas institucionais */}
                                                               <Route path="/termos" element={<Termos />} />
                                                               <Route path="/privacidade" element={<Privacidade />} />
+                                                              <Route path="/exclusao-de-dados" element={<ExclusaoDeDados />} />
                                                               <Route path="/suporte" element={<Suporte />} />
                                                               <Route path="/planos" element={<PlanosPublico />} />
                                                 

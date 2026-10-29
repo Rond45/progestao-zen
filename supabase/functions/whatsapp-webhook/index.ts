@@ -161,10 +161,74 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
+    const rawBody = await req.text();
+
+    // ===== Verificação de assinatura (X-Hub-Signature-256) =====
+    const appSecret = Deno.env.get("WHATSAPP_APP_SECRET");
+    if (appSecret) {
+      const sigHeader = req.headers.get("X-Hub-Signature-256") ?? "";
+      const key = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(appSecret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"],
+      );
+      const mac = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(rawBody)));
+      const expectedSig = "sha256=" + Array.from(mac).map((b) => b.toString(16).padStart(2, "0")).join("");
+      const a = new TextEncoder().encode(expectedSig);
+      const b = new TextEncoder().encode(sigHeader.toLowerCase());
+      let diff = a.length ^ b.length;
+      for (let i = 0; i < a.length; i++) diff |= a[i] ^ (b[i] ?? 0);
+      if (!sigHeader || diff !== 0) {
+        console.error("[SIGNATURE] Assinatura inválida ou ausente.");
+        return new Response(JSON.stringify({ error: "invalid signature" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      console.warn("WHATSAPP_APP_SECRET ausente: assinatura não verificada");
+    }
+
+    const body = JSON.parse(rawBody);
+    const okJson = (extra: Record<string, unknown> = {}) =>
+      new Response(JSON.stringify({ ok: true, ...extra }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+
+    const entry0 = body?.entry?.[0];
+    const change0 = entry0?.changes?.[0];
+    const field: string | undefined = change0?.field;
+
+    // ===== Eventos de conta =====
+    if (field === "account_update") {
+      const ev = change0?.value?.event;
+      const wabaId = entry0?.id;
+      if (change0?.value?.disconnection_info) {
+        console.log("[ACCOUNT_UPDATE] disconnection_info:", JSON.stringify(change0.value.disconnection_info));
+      }
+      let newStatus: string | null = null;
+      if (ev === "PARTNER_REMOVED" || ev === "ACCOUNT_OFFBOARDED") newStatus = "disconnected";
+      else if (ev === "ACCOUNT_RECONNECTED") newStatus = "connected";
+      if (newStatus && wabaId) {
+        const { error: accErr } = await supabase
+          .from("whatsapp_connections")
+          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .eq("waba_id", wabaId);
+        if (accErr) console.error("[ACCOUNT_UPDATE] Erro ao atualizar status:", accErr.message);
+        console.log(`[ACCOUNT_UPDATE] ${ev} → waba ${wabaId} = ${newStatus}`);
+      }
+      return okJson();
+    }
+
+    // ===== Sincronização da coexistência — ignorar =====
+    if (field === "history" || field === "smb_app_state_sync" || field === "smb_message_echoes") {
+      return okJson({ skipped: true });
+    }
 
     // ===== Payload WhatsApp Cloud API (Meta) =====
-    const value = body?.entry?.[0]?.changes?.[0]?.value;
+    const value = change0?.value;
     const phoneNumberId: string | undefined = value?.metadata?.phone_number_id;
 
     // Status updates (entrega/leitura) — ignorar
