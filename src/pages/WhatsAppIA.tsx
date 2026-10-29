@@ -30,7 +30,7 @@ const WhatsAppIA = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("whatsapp_connections")
-        .select("id, business_id, status, phone_number, phone_number_id, waba_id, connected_at, is_on_biz_app")
+        .select("business_id, status, phone_number, phone_number_id, waba_id, connected_at, is_on_biz_app")
         .eq("business_id", businessId!)
         .maybeSingle();
       if (error) throw error;
