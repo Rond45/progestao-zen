@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Shield } from "lucide-react";
+import ReminderIndicator from "@/components/agenda/ReminderIndicator";
 
 const hours = Array.from({ length: 12 }, (_, i) => `${(i + 8).toString().padStart(2, "0")}:00`);
 
@@ -113,7 +114,7 @@ const Agenda = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("appointments")
-        .select("*, clients(id, name, phone, avatar_url), professionals(name), services(name, duration_minutes, price_cents)")
+        .select("*, clients(id, name, phone, avatar_url), professionals(name), services(name, duration_minutes, price_cents), appointment_reminders(status, response)")
         .eq("business_id", businessId!)
         .gte("starts_at", dayStart)
         .lte("starts_at", dayEnd)
@@ -268,7 +269,7 @@ const Agenda = () => {
                           {event.clients?.name}
                         </button>
                         <p className="text-[10px] text-muted-foreground truncate">{event.services?.name}</p>
-                        <p className="text-[10px] text-muted-foreground">{statusLabels[event.status]}</p>
+                        <p className="text-[10px] text-muted-foreground">{statusLabels[event.status]}<ReminderIndicator reminders={event.appointment_reminders} /></p>
                         {event.status !== "done" && event.status !== "cancelled" && (
                           <div className="flex gap-1 mt-1.5">
                             <button
