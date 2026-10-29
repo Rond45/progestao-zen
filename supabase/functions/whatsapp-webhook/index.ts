@@ -201,6 +201,25 @@ Deno.serve(async (req) => {
     const change0 = entry0?.changes?.[0];
     const field: string | undefined = change0?.field;
 
+    // ===== Status de modelos de mensagem =====
+    if (field === "message_template_status_update") {
+      const v = change0?.value ?? {};
+      const map: Record<string, string> = { APPROVED: "approved", REJECTED: "rejected", PENDING: "pending", PAUSED: "paused", DISABLED: "paused" };
+      const st = map[String(v.event || "").toUpperCase()];
+      if (st) {
+        const upd: Record<string, unknown> = { status: st };
+        if (v.reason && v.reason !== "NONE") upd.rejection_reason = String(v.reason);
+        let q = supabase.from("whatsapp_templates").update(upd);
+        q = v.message_template_id
+          ? q.or(`meta_template_id.eq.${String(v.message_template_id)},name.eq.${String(v.message_template_name || "").replace(/[^a-z0-9_]/g, "")}`)
+          : q.eq("name", String(v.message_template_name || ""));
+        const { error: tErr } = await q;
+        if (tErr) console.error("[TEMPLATE_STATUS] erro:", tErr.message);
+        console.log(`[TEMPLATE_STATUS] ${v.message_template_name} → ${st}`);
+      }
+      return okJson();
+    }
+
     // ===== Eventos de conta =====
     if (field === "account_update") {
       const ev = change0?.value?.event;
@@ -246,6 +265,67 @@ Deno.serve(async (req) => {
     }
 
     const remotePhone = String(message.from || "").replace(/\D/g, "");
+
+    // ===== Respostas aos lembretes automáticos (número central) =====
+    const btnPayload: string =
+      (message.type === "button" ? message.button?.payload : "") ||
+      message.interactive?.button_reply?.id || "";
+    if (/^(CONFIRM|CANCEL):/.test(btnPayload)) {
+      const [kindTag, reminderId] = btnPayload.split(":");
+      const { data: rem } = await supabase
+        .from("appointment_reminders")
+        .select("id, appointment_id, business_id, response")
+        .eq("id", reminderId)
+        .maybeSingle();
+      if (!rem || rem.response) return okJson({ skipped: true });
+      const isConfirm = kindTag === "CONFIRM";
+      await supabase.from("appointment_reminders")
+        .update({ response: isConfirm ? "confirmed" : "cancelled", responded_at: new Date().toISOString() })
+        .eq("id", rem.id);
+      await supabase.from("appointments")
+        .update({ status: isConfirm ? "confirmed" : "cancelled" })
+        .eq("id", rem.appointment_id);
+      const [{ data: ap }, { data: biz }] = await Promise.all([
+        supabase.from("appointments").select("clients(name)").eq("id", rem.appointment_id).maybeSingle(),
+        supabase.from("businesses").select("name, phone").eq("id", rem.business_id).maybeSingle(),
+      ]);
+      const firstName = String((ap as any)?.clients?.name || "").trim().split(/\s+/)[0] || "cliente";
+      const reply = isConfirm
+        ? `Perfeito, ${firstName}! Seu horário está confirmado. Te esperamos!`
+        : `Tudo certo, cancelamos seu horário. Para remarcar, fale diretamente com ${biz?.name || "o estabelecimento"}${biz?.phone ? ` no telefone ${biz.phone}` : ""}.`;
+      await sendWhatsAppMessage(remotePhone, reply, phoneNumberId);
+      return okJson({ reminder: kindTag.toLowerCase() });
+    }
+
+    // ===== Opt-out dos lembretes =====
+    if (message.type === "text") {
+      const norm = String(message.text?.body || "")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+      if (norm === "sair" || norm === "parar" || norm === "stop") {
+        const since = new Date(Date.now() - 30 * 86400_000).toISOString();
+        const { data: recent } = await supabase
+          .from("appointment_reminders")
+          .select("business_id, appointment_id")
+          .eq("to_phone", remotePhone)
+          .eq("status", "sent")
+          .gte("sent_at", since);
+        if (recent && recent.length) {
+          const apptIds = [...new Set(recent.map((r: any) => r.appointment_id))];
+          const { data: appts } = await supabase.from("appointments").select("client_id").in("id", apptIds);
+          const clientIds = [...new Set((appts ?? []).map((a: any) => a.client_id))];
+          if (clientIds.length) {
+            await supabase.from("clients").update({ whatsapp_opt_out: true }).in("id", clientIds);
+          }
+          await sendWhatsAppMessage(
+            remotePhone,
+            "Pronto, você não receberá mais lembretes automáticos. Se mudar de ideia, fale com o estabelecimento.",
+            phoneNumberId,
+          );
+          return okJson({ opt_out: true });
+        }
+      }
+    }
     const messageText: string =
       message.type === "text" ? (message.text?.body || "") : (message.button?.text || message.interactive?.list_reply?.title || "");
 
