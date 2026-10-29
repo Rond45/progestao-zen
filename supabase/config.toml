@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.whatsapp-embedded-signup]
 verify_jwt = true
+
+[functions.enviar-lembretes]
+verify_jwt = false

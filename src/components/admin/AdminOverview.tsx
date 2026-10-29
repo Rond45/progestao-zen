@@ -6,7 +6,14 @@ export const adminCall = async (action: string, params: Record<string, any> = {}
   const { data, error } = await supabase.functions.invoke("admin-api", {
     body: { action, ...params },
   });
-  if (error) throw error;
+  if (error) {
+    let msg = error.message;
+    try {
+      const ctx: any = (error as any).context;
+      if (ctx?.json) { const b = await ctx.json(); if (b?.error) msg = b.error; }
+    } catch { /* mantém mensagem padrão */ }
+    throw new Error(msg);
+  }
   if (data?.error) throw new Error(data.error);
   return data;
 };

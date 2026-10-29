@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WhatsAppConfig from "@/components/configuracoes/WhatsAppConfig";
+import LembretesConfig from "@/components/configuracoes/LembretesConfig";
 import WorkingHoursSelector, {
   type WeekSchedule,
   getDefaultSchedule,
@@ -24,7 +25,7 @@ const policyOptions = [
 ];
 
 const Configuracoes = () => {
-  const { businessId, business } = useBusiness();
+  const { businessId, business, profile } = useBusiness();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -225,6 +226,13 @@ const Configuracoes = () => {
         </TabsList>
 
         <TabsContent value="geral" className="space-y-4">
+        {profile?.role === "owner" && businessId && business && (
+          <LembretesConfig
+            businessId={businessId}
+            enabled={!!(business as any).reminders_enabled}
+            hoursBefore={(business as any).reminder_hours_before ?? 24}
+          />
+        )}
         {/* Business info */}
         <div className="rounded-lg border border-border bg-card p-5">
           <div className="flex items-center gap-2 mb-4">

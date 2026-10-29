@@ -8,6 +8,13 @@
       "when": 1793280689764,
       "tag": "0000_whatsapp_coexistence_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793290418953,
+      "tag": "0001_whatsapp_reminders_templates",
+      "breakpoints": true
     }
   ]
 }
