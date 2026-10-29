@@ -49,6 +49,7 @@ const Privacidade = () => {
             <p><strong>2.3. Dados de comunicação via WhatsApp:</strong></p>
             <ul className="list-disc pl-5 space-y-1">
               <li>Conteúdo das conversas de atendimento realizadas pela funcionalidade de inteligência artificial, para viabilizar agendamentos e o próprio atendimento.</li>
+              <li>A conexão é feita pela <strong>API oficial do WhatsApp Business (Cloud API) da Meta</strong>. As mensagens (texto, telefone e nome de perfil do contato) são recebidas pelos servidores do ProGestão+, processadas pela IA para gerar respostas e armazenadas no histórico do estabelecimento. Os tokens de acesso fornecidos pela Meta ficam guardados apenas no servidor e nunca são exibidos no navegador.</li>
             </ul>
           </section>
 

@@ -75,6 +75,7 @@ const Termos = () => {
             <p>b) O ProGestão+ <strong>não se responsabiliza</strong> por bloqueios, suspensões, banimentos, limitações ou instabilidades que a Meta/WhatsApp venha a impor ao número do Usuário, ainda que decorrentes do uso automatizado;</p>
             <p>c) É recomendável que o Usuário utilize um número comercial dedicado, e não seu número pessoal, para a integração;</p>
             <p>d) O ProGestão+ não garante a entrega, o recebimento ou o tempo de resposta das mensagens, que dependem da infraestrutura de terceiros.</p>
+            <p>7.2.1. A integração utiliza a <strong>API oficial do WhatsApp Business (WhatsApp Cloud API), fornecida pela Meta</strong>. As mensagens recebidas e enviadas pelo número conectado são processadas pelo ProGestão+ exclusivamente para o atendimento automatizado e o agendamento, e armazenadas conforme a Política de Privacidade. O Usuário pode desconectar o número a qualquer momento.</p>
             <p>7.3. As respostas geradas por inteligência artificial são automatizadas e podem conter imprecisões. O Usuário é responsável por revisar e supervisionar os agendamentos e informações prestados aos seus próprios clientes.</p>
           </section>
 
