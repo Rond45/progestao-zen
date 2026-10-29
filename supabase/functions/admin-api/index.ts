@@ -22,6 +22,42 @@ function slugify(text: string): string {
     .slice(0, 30);
 }
 
+const GRAPH = "https://graph.facebook.com/v24.0";
+
+async function centralCreds(supabase: any) {
+  const tk = Deno.env.get("WHATSAPP_CLOUD_TOKEN");
+  const { data } = await supabase.from("platform_config").select("value").eq("key", "central_waba_id").maybeSingle();
+  const waba = data?.value;
+  if (!tk || !waba) throw new Error("Credenciais do número central ausentes (token ou WABA).");
+  return { tk, waba };
+}
+
+function validateTemplate(t: any): string | null {
+  if (!t?.name || !/^[a-z0-9_]+$/.test(t.name)) return "Nome inválido: use apenas letras minúsculas, números e _.";
+  const body = String(t.body || "");
+  if (!body.trim()) return "O corpo é obrigatório.";
+  if (body.length > 1024) return "O corpo deve ter no máximo 1024 caracteres.";
+  if (t.footer && String(t.footer).length > 60) return "O rodapé deve ter no máximo 60 caracteres.";
+  const buttons = (t.buttons ?? []).filter((b: string) => b?.trim());
+  if (buttons.length > 3) return "No máximo 3 botões.";
+  if (buttons.some((b: string) => b.trim().length > 25)) return "Cada botão deve ter no máximo 25 caracteres.";
+  if (!["UTILITY", "MARKETING", "AUTHENTICATION"].includes(t.category || "UTILITY")) return "Categoria inválida.";
+  const trimmed = body.trim();
+  if (/^\{\{\d+\}\}/.test(trimmed) || /\{\{\d+\}\}$/.test(trimmed.replace(/[.!?]+$/, "")) && /\{\{\d+\}\}$/.test(trimmed)) {
+    return "O corpo não pode começar nem terminar com uma variável.";
+  }
+  if (/\{\{\d+\}\}\s*\{\{\d+\}\}/.test(body)) return "Variáveis não podem ficar coladas uma na outra.";
+  const nums = [...body.matchAll(/\{\{(\d+)\}\}/g)].map((m) => Number(m[1]));
+  const max = nums.length ? Math.max(...nums) : 0;
+  for (let i = 1; i <= max; i++) if (!nums.includes(i)) return `Variável {{${i}}} ausente: numere em sequência.`;
+  const ex = Array.isArray(t.body_examples) ? t.body_examples : [];
+  if (ex.length < max || ex.slice(0, max).some((e: string) => !String(e ?? "").trim())) {
+    return "Informe um exemplo para cada variável.";
+  }
+  t.body_examples = ex.slice(0, max).map((e: string) => String(e).trim());
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -115,7 +151,7 @@ Deno.serve(async (req) => {
           .order("name");
         const { data: connections } = await supabase
           .from("whatsapp_connections")
-          .select("business_id, phone_number, ai_name, status, instance_name, qr_code");
+          .select("business_id, phone_number, ai_name, status, instance_name, qr_code, is_on_biz_app, phone_number_id");
         const connMap = new Map((connections ?? []).map((c: any) => [c.business_id, c]));
         const result = (businesses ?? []).map((b: any) => {
           const conn = connMap.get(b.id);
@@ -128,6 +164,8 @@ Deno.serve(async (req) => {
             status: conn?.status || null,
             instance_name: conn?.instance_name || null,
             qr_code: conn?.qr_code || null,
+            is_on_biz_app: !!conn?.is_on_biz_app,
+            phone_number_id: conn?.phone_number_id || null,
             has_connection: !!conn,
           };
         });
@@ -342,6 +380,161 @@ Deno.serve(async (req) => {
             .upsert({ key, value: String(value ?? ""), updated_at: new Date().toISOString() }, { onConflict: "key" });
         }
         return json({ success: true });
+      }
+
+      // ===== Número central / modelos de mensagem (Cloud API) =====
+      case "central-status": {
+        const tk = Deno.env.get("WHATSAPP_CLOUD_TOKEN");
+        const pnid = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+        if (!tk || !pnid) return json({ token_ok: false, error: "Credenciais do número central ausentes." });
+        const r = await fetch(`${GRAPH}/${pnid}?fields=display_phone_number,verified_name,quality_rating,name_status,status`, {
+          headers: { Authorization: `Bearer ${tk}` },
+        });
+        const out = await r.json().catch(() => ({}));
+        if (!r.ok) return json({ token_ok: false, error: out?.error?.message || `HTTP ${r.status}` });
+        return json({
+          token_ok: true,
+          display_phone_number: out.display_phone_number ?? null,
+          verified_name: out.verified_name ?? null,
+          quality_rating: out.quality_rating ?? null,
+          name_status: out.name_status ?? null,
+          status: out.status ?? null,
+        });
+      }
+
+      case "list-templates": {
+        const { data, error } = await supabase.from("whatsapp_templates").select("*").order("created_at", { ascending: false });
+        if (error) throw error;
+        return json(data ?? []);
+      }
+
+      case "save-template": {
+        const t = params.template ?? {};
+        const v = validateTemplate(t);
+        if (v) return json({ error: v }, 400);
+        const row = {
+          name: t.name,
+          language: t.language || "pt_BR",
+          category: t.category || "UTILITY",
+          body: t.body,
+          footer: t.footer?.trim() ? t.footer.trim() : null,
+          buttons: (t.buttons ?? []).filter((b: string) => b?.trim()).map((b: string) => b.trim()),
+          body_examples: t.body_examples ?? [],
+        };
+        if (t.id) {
+          const { data: cur } = await supabase.from("whatsapp_templates").select("status").eq("id", t.id).maybeSingle();
+          if (cur && cur.status !== "draft" && cur.status !== "rejected") {
+            return json({ error: "Somente rascunhos ou modelos rejeitados podem ser editados." }, 400);
+          }
+          const { error } = await supabase.from("whatsapp_templates").update({ ...row, status: "draft" }).eq("id", t.id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from("whatsapp_templates").insert(row);
+          if (error) return json({ error: error.code === "23505" ? "Já existe um modelo com esse nome." : error.message }, 400);
+        }
+        return json({ success: true });
+      }
+
+      case "submit-template": {
+        const { data: t } = await supabase.from("whatsapp_templates").select("*").eq("id", params.id).maybeSingle();
+        if (!t) return json({ error: "Modelo não encontrado." }, 404);
+        const { waba, tk } = await centralCreds(supabase);
+        const components: any[] = [{
+          type: "BODY",
+          text: t.body,
+          ...(Array.isArray(t.body_examples) && t.body_examples.length ? { example: { body_text: [t.body_examples] } } : {}),
+        }];
+        if (t.footer) components.push({ type: "FOOTER", text: t.footer });
+        if (Array.isArray(t.buttons) && t.buttons.length) {
+          components.push({ type: "BUTTONS", buttons: t.buttons.map((b: string) => ({ type: "QUICK_REPLY", text: b })) });
+        }
+        const r = await fetch(`${GRAPH}/${waba}/message_templates`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${tk}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ name: t.name, language: t.language, category: t.category, components }),
+        });
+        const out = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          const msg = out?.error?.error_user_msg || out?.error?.message || `HTTP ${r.status}`;
+          return json({ error: `Meta: ${msg}` }, 400);
+        }
+        await supabase.from("whatsapp_templates").update({
+          meta_template_id: out.id ?? null,
+          status: String(out.status || "PENDING").toLowerCase() === "approved" ? "approved" : "pending",
+          rejection_reason: null,
+        }).eq("id", t.id);
+        return json({ success: true, meta_template_id: out.id ?? null });
+      }
+
+      case "sync-template-status": {
+        const { data: t } = await supabase.from("whatsapp_templates").select("*").eq("id", params.id).maybeSingle();
+        if (!t) return json({ error: "Modelo não encontrado." }, 404);
+        const { waba, tk } = await centralCreds(supabase);
+        const r = await fetch(`${GRAPH}/${waba}/message_templates?name=${encodeURIComponent(t.name)}&fields=name,status,id,rejected_reason`, {
+          headers: { Authorization: `Bearer ${tk}` },
+        });
+        const out = await r.json().catch(() => ({}));
+        if (!r.ok) return json({ error: `Meta: ${out?.error?.message || `HTTP ${r.status}`}` }, 400);
+        const remote = (out.data ?? []).find((x: any) => x.name === t.name && (!t.language || true));
+        if (!remote) return json({ status: t.status, found: false });
+        const map: Record<string, string> = { APPROVED: "approved", REJECTED: "rejected", PENDING: "pending", PAUSED: "paused", DISABLED: "paused", IN_APPEAL: "pending" };
+        const st = map[String(remote.status).toUpperCase()] || t.status;
+        await supabase.from("whatsapp_templates").update({
+          status: st,
+          meta_template_id: remote.id ?? t.meta_template_id,
+          rejection_reason: remote.rejected_reason && remote.rejected_reason !== "NONE" ? remote.rejected_reason : null,
+        }).eq("id", t.id);
+        return json({ status: st, found: true });
+      }
+
+      case "delete-template": {
+        const { data: t } = await supabase.from("whatsapp_templates").select("*").eq("id", params.id).maybeSingle();
+        if (!t) return json({ error: "Modelo não encontrado." }, 404);
+        if (t.meta_template_id) {
+          const { waba, tk } = await centralCreds(supabase);
+          const r = await fetch(`${GRAPH}/${waba}/message_templates?name=${encodeURIComponent(t.name)}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${tk}` },
+          });
+          if (!r.ok) {
+            const out = await r.json().catch(() => ({}));
+            return json({ error: `Meta: ${out?.error?.error_user_msg || out?.error?.message || `HTTP ${r.status}`}` }, 400);
+          }
+        }
+        await supabase.from("whatsapp_templates").delete().eq("id", t.id);
+        return json({ success: true });
+      }
+
+      case "send-test-template": {
+        const { template_name, to_phone } = params;
+        const d = String(to_phone || "").replace(/\D/g, "");
+        const to = d.length === 10 || d.length === 11 ? "55" + d : d.startsWith("55") && (d.length === 12 || d.length === 13) ? d : null;
+        if (!to) return json({ error: "Telefone inválido." }, 400);
+        const { data: t } = await supabase.from("whatsapp_templates").select("*").eq("name", template_name).maybeSingle();
+        if (!t) return json({ error: "Modelo não encontrado." }, 404);
+        if (t.status !== "approved") return json({ error: "O modelo precisa estar aprovado pela Meta para envio." }, 400);
+        const tk = Deno.env.get("WHATSAPP_CLOUD_TOKEN");
+        const pnid = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+        if (!tk || !pnid) return json({ error: "Credenciais do número central ausentes." }, 500);
+        const components: any[] = [];
+        const ex = Array.isArray(t.body_examples) ? t.body_examples : [];
+        if (ex.length) components.push({ type: "body", parameters: ex.map((x: string) => ({ type: "text", text: String(x) })) });
+        (Array.isArray(t.buttons) ? t.buttons : []).forEach((_b: string, i: number) => {
+          components.push({ type: "button", sub_type: "quick_reply", index: String(i), parameters: [{ type: "payload", payload: `TEST:${i}` }] });
+        });
+        const r = await fetch(`${GRAPH}/${pnid}/messages`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${tk}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messaging_product: "whatsapp",
+            to,
+            type: "template",
+            template: { name: t.name, language: { code: t.language }, components },
+          }),
+        });
+        const out = await r.json().catch(() => ({}));
+        if (!r.ok) return json({ error: `Meta: ${out?.error?.error_data?.details || out?.error?.message || `HTTP ${r.status}`}` }, 400);
+        return json({ success: true, message_id: out?.messages?.[0]?.id ?? null });
       }
 
       default:
