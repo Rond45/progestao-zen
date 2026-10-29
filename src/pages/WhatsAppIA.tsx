@@ -23,14 +23,14 @@ const WhatsAppIA = () => {
   const { toast } = useToast();
   const qc = useQueryClient();
   const [connecting, setConnecting] = useState(false);
-  const sessionInfo = useRef<{ phone_number_id?: string; waba_id?: string }>({});
+  const sessionInfo = useRef<{ phone_number_id?: string; waba_id?: string; is_on_biz_app?: boolean }>({});
 
   const { data: connection } = useQuery({
     queryKey: ["whatsapp-connection", businessId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("whatsapp_connections")
-        .select("*")
+        .select("id, business_id, status, phone_number, phone_number_id, waba_id, connected_at, is_on_biz_app")
         .eq("business_id", businessId!)
         .maybeSingle();
       if (error) throw error;
@@ -77,10 +77,14 @@ const WhatsAppIA = () => {
       if (event.origin !== "https://www.facebook.com" && event.origin !== "https://web.facebook.com") return;
       try {
         const data = JSON.parse(event.data);
-        if (data?.type === "WA_EMBEDDED_SIGNUP" && data?.event === "FINISH") {
+        if (
+          data?.type === "WA_EMBEDDED_SIGNUP" &&
+          (data?.event === "FINISH" || data?.event === "FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING")
+        ) {
           sessionInfo.current = {
-            phone_number_id: data.data?.phone_number_id,
+            phone_number_id: data.data?.phone_number_id || undefined,
             waba_id: data.data?.waba_id,
+            is_on_biz_app: data.event === "FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING",
           };
         }
       } catch {
@@ -92,8 +96,8 @@ const WhatsAppIA = () => {
   }, []);
 
   const finishSignup = async (code: string) => {
-    const { phone_number_id, waba_id } = sessionInfo.current;
-    if (!phone_number_id || !waba_id) {
+    const { phone_number_id, waba_id, is_on_biz_app = false } = sessionInfo.current;
+    if (!waba_id) {
       setConnecting(false);
       toast({
         title: "Conexão incompleta",
@@ -104,11 +108,22 @@ const WhatsAppIA = () => {
     }
     try {
       const { data, error } = await supabase.functions.invoke("whatsapp-embedded-signup", {
-        body: { business_id: businessId, code, waba_id, phone_number_id },
+        body: {
+          business_id: businessId,
+          code,
+          waba_id,
+          ...(phone_number_id ? { phone_number_id } : {}),
+          is_on_biz_app,
+        },
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      toast({ title: "WhatsApp conectado com sucesso!" });
+      toast({
+        title: "WhatsApp conectado com sucesso!",
+        description: is_on_biz_app
+          ? "Você continua usando o app WhatsApp Business normalmente. Abra o app pelo menos uma vez a cada 14 dias para manter a conexão."
+          : undefined,
+      });
       sessionInfo.current = {};
       qc.invalidateQueries({ queryKey: ["whatsapp-connection", businessId] });
     } catch (e: any) {
@@ -144,7 +159,7 @@ const WhatsAppIA = () => {
         config_id: FB_CONFIG_ID,
         response_type: "code",
         override_default_response_type: true,
-        extras: { setup: {} },
+        extras: { featureType: "whatsapp_business_app_onboarding" },
       },
     );
   };
@@ -196,8 +211,15 @@ const WhatsAppIA = () => {
           </div>
           <p className="text-sm text-muted-foreground max-w-xl">
             Conecte o WhatsApp do seu negócio para ativar o atendimento automático com IA. A conexão é feita pelo login
-            oficial da Meta, sem QR Code — leva menos de 2 minutos.
+            oficial da Meta, sem QR Code — leva menos de 2 minutos. Você pode conectar o mesmo número que o estabelecimento
+            já usa no app WhatsApp Business e continuar usando o app normalmente.
           </p>
+          {connection?.status === "disconnected" && (
+            <div className="mt-4 rounded-md border-2 border-destructive/40 bg-destructive/10 p-3 text-sm text-foreground">
+              A conexão com o WhatsApp foi interrompida (por exemplo, o app WhatsApp Business ficou mais de 14 dias sem ser
+              aberto). Conecte novamente.
+            </div>
+          )}
           <Button className="mt-4 gap-2" size="lg" onClick={launchWhatsAppSignup} disabled={connecting}>
             {connecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
             {connecting ? "Conectando..." : "Conectar meu WhatsApp"}

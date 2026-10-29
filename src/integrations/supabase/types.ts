@@ -837,6 +837,7 @@ export type Database = {
           business_id: string
           connected_at: string | null
           instance_name: string | null
+          is_on_biz_app: boolean
           openai_model: string | null
           phone_number: string | null
           phone_number_id: string | null
@@ -854,6 +855,7 @@ export type Database = {
           business_id: string
           connected_at?: string | null
           instance_name?: string | null
+          is_on_biz_app?: boolean
           openai_model?: string | null
           phone_number?: string | null
           phone_number_id?: string | null
@@ -871,6 +873,7 @@ export type Database = {
           business_id?: string
           connected_at?: string | null
           instance_name?: string | null
+          is_on_biz_app?: boolean
           openai_model?: string | null
           phone_number?: string | null
           phone_number_id?: string | null
