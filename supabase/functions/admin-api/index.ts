@@ -43,7 +43,7 @@ function validateTemplate(t: any): string | null {
   if (buttons.some((b: string) => b.trim().length > 25)) return "Cada botão deve ter no máximo 25 caracteres.";
   if (!["UTILITY", "MARKETING", "AUTHENTICATION"].includes(t.category || "UTILITY")) return "Categoria inválida.";
   const trimmed = body.trim();
-  if (/^\{\{\d+\}\}/.test(trimmed) || /\{\{\d+\}\}$/.test(trimmed.replace(/[.!?]+$/, "")) && /\{\{\d+\}\}$/.test(trimmed)) {
+  if (/^\{\{\d+\}\}/.test(trimmed) || /\{\{\d+\}\}$/.test(trimmed)) {
     return "O corpo não pode começar nem terminar com uma variável.";
   }
   if (/\{\{\d+\}\}\s*\{\{\d+\}\}/.test(body)) return "Variáveis não podem ficar coladas uma na outra.";
@@ -475,7 +475,7 @@ Deno.serve(async (req) => {
         });
         const out = await r.json().catch(() => ({}));
         if (!r.ok) return json({ error: `Meta: ${out?.error?.message || `HTTP ${r.status}`}` }, 400);
-        const remote = (out.data ?? []).find((x: any) => x.name === t.name && (!t.language || true));
+        const remote = (out.data ?? []).find((x: any) => x.name === t.name);
         if (!remote) return json({ status: t.status, found: false });
         const map: Record<string, string> = { APPROVED: "approved", REJECTED: "rejected", PENDING: "pending", PAUSED: "paused", DISABLED: "paused", IN_APPEAL: "pending" };
         const st = map[String(remote.status).toUpperCase()] || t.status;
