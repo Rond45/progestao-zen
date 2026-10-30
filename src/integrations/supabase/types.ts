@@ -317,6 +317,21 @@ export type Database = {
         }
         Relationships: []
       }
+      central_autoreply_log: {
+        Row: {
+          last_sent_at: string
+          phone: string
+        }
+        Insert: {
+          last_sent_at?: string
+          phone: string
+        }
+        Update: {
+          last_sent_at?: string
+          phone?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           avatar_url: string | null

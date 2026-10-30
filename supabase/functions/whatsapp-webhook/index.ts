@@ -343,12 +343,6 @@ Deno.serve(async (req) => {
     const mediaType: string | null = messageText ? null : (mediaMap[message.type] || null);
     if (mediaType) console.log("[MEDIA] Mensagem não-textual recebida:", mediaType, remotePhone);
 
-    if (!remotePhone || (!messageText && !mediaType)) {
-      return new Response(JSON.stringify({ ok: true, skipped: true }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     // Roteamento do negócio por phone_number_id
     const { data: conn } = await supabase
       .from("whatsapp_connections")
@@ -357,9 +351,51 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (!conn) {
-      console.error("No connection found for phone_number_id:", phoneNumberId);
-      return new Response(JSON.stringify({ error: "Connection not found" }), {
-        status: 404,
+      const centralPnid = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+      const normText = String(message.text?.body || "")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+      const isOptOutWord = message.type === "text" && ["sair", "parar", "stop"].includes(normText);
+      if (centralPnid && phoneNumberId === centralPnid && remotePhone && !isOptOutWord) {
+        try {
+          const { data: logRow } = await supabase
+            .from("central_autoreply_log")
+            .select("last_sent_at")
+            .eq("phone", remotePhone)
+            .maybeSingle();
+          const last = logRow?.last_sent_at ? new Date(logRow.last_sent_at).getTime() : 0;
+          if (Date.now() - last >= 24 * 3600_000) {
+            const token = Deno.env.get("WHATSAPP_CLOUD_TOKEN");
+            const res = await fetch(`https://graph.facebook.com/v24.0/${centralPnid}/messages`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                messaging_product: "whatsapp",
+                to: remotePhone,
+                type: "text",
+                text: { body: "Olá! Este número envia apenas lembretes automáticos de horário. Para falar com o estabelecimento, entre em contato diretamente com ele. Para não receber mais lembretes, responda SAIR." },
+              }),
+            });
+            if (!res.ok) {
+              console.error("[CENTRAL_AUTOREPLY] Falha no envio:", res.status, await res.text());
+            } else {
+              const { error: upErr } = await supabase
+                .from("central_autoreply_log")
+                .upsert({ phone: remotePhone, last_sent_at: new Date().toISOString() }, { onConflict: "phone" });
+              if (upErr) console.error("[CENTRAL_AUTOREPLY] Erro no upsert:", upErr.message);
+            }
+          }
+        } catch (e) {
+          console.error("[CENTRAL_AUTOREPLY] Erro:", e instanceof Error ? e.message : String(e));
+        }
+      } else {
+        console.log("No connection found for phone_number_id:", phoneNumberId);
+      }
+      return okJson({ skipped: true });
+    }
+
+    if (!remotePhone || (!messageText && !mediaType)) {
+      return new Response(JSON.stringify({ ok: true, skipped: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
