@@ -18,7 +18,11 @@ export const usePlan = () => {
       return data;
     },
     enabled: !!user,
-    refetchInterval: 60_000,
+    refetchInterval: (query) => {
+      const d = (query.state.data as any) ?? null;
+      const ate = d?.acesso_valido_ate ? new Date(d.acesso_valido_ate).getTime() : null;
+      return ate !== null && ate <= Date.now() ? 5_000 : 60_000;
+    },
   });
 
   const acessoValidoAte = (data as any)?.acesso_valido_ate

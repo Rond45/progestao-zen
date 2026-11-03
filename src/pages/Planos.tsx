@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import PagamentoModal from "@/components/pagamento/PagamentoModal";
+import PagamentoSucessoDialog from "@/components/pagamento/PagamentoSucessoDialog";
+import { useQueryClient } from "@tanstack/react-query";
 import { usePlansConfig } from "@/hooks/usePlansConfig";
 
 type BasePlan = {
@@ -77,6 +79,42 @@ const Planos = () => {
   const [modalPlan, setModalPlan] = useState<"basico" | "pro" | "premium" | null>(null);
   const autoCheckoutTriggered = useRef(false);
   const plansCfg = usePlansConfig();
+  const queryClient = useQueryClient();
+  const [cardSuccess, setCardSuccess] = useState<{ plano: string; ate: string } | null>(null);
+  const cardReturnHandled = useRef(false);
+
+  // Retorno do checkout de cartão do Mercado Pago (back_url = /dashboard/planos)
+  useEffect(() => {
+    if (!user || cardReturnHandled.current) return;
+    let flag: string | null = null;
+    try { flag = sessionStorage.getItem("mp_card_return"); } catch { /* ignore */ }
+    const fromMp = !!flag || !!searchParams.get("preapproval_id");
+    if (!fromMp) return;
+    cardReturnHandled.current = true;
+    let cancelled = false;
+    let tries = 0;
+    const check = async () => {
+      if (cancelled) return;
+      tries++;
+      queryClient.invalidateQueries({ queryKey: ["subscription", user.id] });
+      const { data } = await supabase
+        .from("subscriptions")
+        .select("status, plan_name, acesso_valido_ate")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const valid = data?.acesso_valido_ate ? new Date(data.acesso_valido_ate).getTime() > Date.now() : false;
+      if (data?.status === "active" && valid) {
+        try { sessionStorage.removeItem("mp_card_return"); } catch { /* ignore */ }
+        setSubscription((prev: any) => ({ ...(prev ?? {}), ...data }));
+        setCardSuccess({ plano: data.plan_name ?? flag ?? "", ate: data.acesso_valido_ate as string });
+        return;
+      }
+      if (tries < 12) window.setTimeout(check, 5000);
+      else { try { sessionStorage.removeItem("mp_card_return"); } catch { /* ignore */ } }
+    };
+    check();
+    return () => { cancelled = true; };
+  }, [user]);
 
   const PLANS = BASE_PLANS.map((p) => {
     const cfg = plansCfg[p.id as keyof typeof plansCfg];
@@ -233,6 +271,15 @@ const Planos = () => {
           open={!!modalPlan}
           onOpenChange={(v) => { if (!v) setModalPlan(null); }}
           plano={modalPlan}
+        />
+      )}
+
+      {cardSuccess && (
+        <PagamentoSucessoDialog
+          open={!!cardSuccess}
+          onOpenChange={(v) => { if (!v) setCardSuccess(null); }}
+          plano={cardSuccess.plano}
+          acessoValidoAte={cardSuccess.ate}
         />
       )}
     </div>
