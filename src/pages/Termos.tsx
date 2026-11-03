@@ -63,7 +63,7 @@ const Termos = () => {
             <h2 className="text-lg font-semibold text-foreground">6. Cancelamento e reembolso</h2>
             <p>6.1. O Usuário pode cancelar sua assinatura a qualquer momento.</p>
             <p>6.2. Em caso de cancelamento, o acesso é mantido até o <strong>final do período já pago</strong>, não havendo bloqueio imediato.</p>
-            <p>6.3. <strong>Política de não reembolso:</strong> considerando que o ProGestão+ oferece 14 dias de teste gratuito completo, permitindo ampla avaliação do serviço antes de qualquer cobrança, <strong>não há reembolso de valores já pagos</strong> após a confirmação do pagamento, seja via cartão ou Pix.</p>
+            <p>6.3. <strong>Política de não reembolso:</strong> considerando que o ProGestão+ oferece 7 dias de teste gratuito completo, permitindo ampla avaliação do serviço antes de qualquer cobrança, <strong>não há reembolso de valores já pagos</strong> após a confirmação do pagamento, seja via cartão ou Pix.</p>
             <p>6.4. Não há fidelidade ou multa por cancelamento.</p>
           </section>
 

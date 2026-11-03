@@ -175,7 +175,7 @@ const Login = () => {
           </p>
           {isSignUp && (
             <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-xs text-foreground">
-              Você está iniciando seu <strong>teste grátis de 14 dias</strong> com acesso Premium.
+              Você está iniciando seu <strong>teste grátis de 7 dias</strong> com acesso Premium.
               <br />
               Sem cartão de crédito. Sem compromisso.
             </div>

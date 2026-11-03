@@ -79,14 +79,14 @@ const Landing = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             Comece agora seu teste{" "}
             <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(90deg, #10B981, #34D399)" }}>
-              grátis de 14 dias
+              grátis de 7 dias
             </span>
           </h2>
           <p className="text-muted-foreground mb-8">
-            Teste todos os recursos por 14 dias. Sem cartão de crédito. Sem compromisso.
+            Teste todos os recursos por 7 dias. Sem cartão de crédito. Sem compromisso.
           </p>
           <Button variant="emerald" size="lg" onClick={() => navigate("/login?signup=1")}>
-            Experimentar grátis por 14 dias
+            Experimentar grátis por 7 dias
             <ArrowRight className="h-4 w-4" />
           </Button>
         </div>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Bot, FileText, Settings, Loader2, MessageCircle, ShieldCheck, Wifi, WifiOff } from "lucide-react";
+import { Bot, FileText, Settings, Loader2, MessageCircle, ShieldCheck, Wifi, WifiOff, Clock } from "lucide-react";
 import { useBusiness } from "@/hooks/useBusiness";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -70,6 +70,15 @@ const WhatsAppIA = () => {
   });
 
   const isConnected = connection?.status === "connected";
+
+  const { data: connectEnabled } = useQuery({
+    queryKey: ["whatsapp-connect-enabled"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("whatsapp_connect_enabled");
+      if (error) return false;
+      return data === true;
+    },
+  });
 
   // Captura waba_id / phone_number_id enviados pelo Embedded Signup via postMessage
   useEffect(() => {
@@ -197,6 +206,19 @@ const WhatsAppIA = () => {
               Online
             </span>
           </div>
+        </div>
+      ) : connectEnabled === false ? (
+        <div className="rounded-lg border-2 border-primary/30 bg-card p-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Clock className="h-5 w-5 text-primary" />
+            </div>
+            <p className="text-base font-semibold text-foreground">Atendimento com IA no seu WhatsApp: em breve</p>
+          </div>
+          <p className="text-sm text-muted-foreground max-w-xl">
+            Estamos finalizando a liberação oficial da Meta. Assim que estiver disponível, você conecta o seu número aqui em
+            poucos minutos, sem custo adicional no seu plano.
+          </p>
         </div>
       ) : (
         <div className="rounded-lg border border-border bg-card p-6 shadow-sm">

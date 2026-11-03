@@ -15,9 +15,9 @@ const features = [
   },
   {
     icon: iconWhatsapp.url,
-    title: "WhatsApp com IA",
+    title: "Lembretes por WhatsApp",
     description:
-      "Agendamento automatizado, confirmações e lembretes direto no WhatsApp.",
+      "Confirmações e lembretes automáticos do horário, direto no WhatsApp do seu cliente. Atendimento com IA em breve.",
   },
   {
     icon: iconCrm.url,

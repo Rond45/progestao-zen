@@ -53,7 +53,7 @@ const HeroSection = () => {
             </span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
-            Teste todos os recursos por 14 dias. Sem cartão de crédito. Sem compromisso.
+            Teste todos os recursos por 7 dias. Sem cartão de crédito. Sem compromisso.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
             <Button
@@ -61,7 +61,7 @@ const HeroSection = () => {
               size="lg"
               onClick={() => navigate("/login?signup=1")}
             >
-              Experimentar grátis por 14 dias
+              Experimentar grátis por 7 dias
               <ArrowRight className="h-4 w-4" />
             </Button>
             <Button variant="outline" size="lg" onClick={() => navigate("/login")}>

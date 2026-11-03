@@ -29,6 +29,7 @@ const BASE_PLANS: BasePlan[] = [
       "Cadastro de clientes",
       "Serviços e preços",
       "Financeiro (caixa)",
+      "Lembretes automáticos por WhatsApp (até 100 por mês)",
     ],
   },
   {
@@ -39,7 +40,8 @@ const BASE_PLANS: BasePlan[] = [
     popular: true,
     baseFeatures: [
       "Tudo do Básico",
-      "WhatsApp IA",
+      "WhatsApp IA (em breve)",
+      "Lembretes automáticos por WhatsApp (até 300 por mês)",
       "Comissões automáticas",
     ],
   },
@@ -53,6 +55,7 @@ const BASE_PLANS: BasePlan[] = [
       "Produtos (estoque)",
       "Vendas e Consumo",
       "Relatórios avançados",
+      "Lembretes automáticos por WhatsApp (até 600 por mês)",
     ],
   },
 ];

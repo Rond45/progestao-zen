@@ -1054,6 +1054,7 @@ export type Database = {
         Args: { _business_id: string; _name: string; _password: string }
         Returns: boolean
       }
+      whatsapp_connect_enabled: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "owner" | "professional" | "reception"

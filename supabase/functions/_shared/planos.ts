@@ -1,8 +1,8 @@
 // Preços fixos no backend (em BRL). Nunca confie no valor vindo do frontend.
 export const PLANOS: Record<string, { nome: string; preco: number }> = {
-  basico: { nome: "Básico", preco: 39.0 },
-  pro: { nome: "Pro", preco: 79.0 },
-  premium: { nome: "Premium", preco: 149.0 },
+  basico: { nome: "Básico", preco: 29.0 },
+  pro: { nome: "Pro", preco: 59.0 },
+  premium: { nome: "Premium", preco: 99.0 },
 };
 
 export type PlanoId = keyof typeof PLANOS;

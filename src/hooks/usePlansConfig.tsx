@@ -8,9 +8,9 @@ export type PlansConfig = {
 };
 
 const DEFAULTS: PlansConfig = {
-  basico: { price: "39", profs: "2" },
-  pro: { price: "79", profs: "4" },
-  premium: { price: "149", profs: "ilimitado" },
+  basico: { price: "29", profs: "2" },
+  pro: { price: "59", profs: "4" },
+  premium: { price: "99", profs: "ilimitado" },
 };
 
 export const usePlansConfig = () => {
