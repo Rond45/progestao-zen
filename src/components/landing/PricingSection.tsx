@@ -7,33 +7,35 @@ const plans = [
   {
     id: "basico",
     name: "Básico",
-    price: "39",
+    price: "29",
     description: "Ideal para profissionais autônomos",
     features: [
       "Agenda e agendamento",
       "Cadastro de clientes",
       "Serviços e preços",
       "Financeiro (caixa)",
+      "Lembretes automáticos por WhatsApp (até 100 por mês)",
       "Até 2 profissionais",
     ],
   },
   {
     id: "pro",
     name: "Pro",
-    price: "79",
+    price: "59",
     description: "Para equipes em crescimento",
     popular: true,
     features: [
       "Tudo do Básico",
       "Até 4 profissionais",
-      "WhatsApp IA",
+      "WhatsApp IA (em breve)",
+      "Lembretes automáticos por WhatsApp (até 300 por mês)",
       "Comissões automáticas",
     ],
   },
   {
     id: "premium",
     name: "Premium",
-    price: "149",
+    price: "99",
     description: "Controle total do seu negócio",
     features: [
       "Tudo do Pro",
@@ -41,6 +43,7 @@ const plans = [
       "Produtos (estoque)",
       "Vendas e Consumo",
       "Relatórios avançados",
+      "Lembretes automáticos por WhatsApp (até 600 por mês)",
     ],
   },
 ];

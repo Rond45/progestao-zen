@@ -348,9 +348,9 @@ Deno.serve(async (req) => {
         const cfg: Record<string, string> = {};
         (cfgRows ?? []).forEach((r: any) => { cfg[r.key] = r.value; });
         const preco = {
-          basico: parseFloat(cfg.plan_basico_price || "39"),
-          pro: parseFloat(cfg.plan_pro_price || "79"),
-          premium: parseFloat(cfg.plan_premium_price || "149"),
+          basico: parseFloat(cfg.plan_basico_price || "29"),
+          pro: parseFloat(cfg.plan_pro_price || "59"),
+          premium: parseFloat(cfg.plan_premium_price || "99"),
         };
         const receita_mensal = enriched
           .filter((s) => s.status === "active")
@@ -364,9 +364,9 @@ Deno.serve(async (req) => {
         const cfg: Record<string, string> = {};
         (data ?? []).forEach((r: any) => { cfg[r.key] = r.value; });
         return json({
-          plan_basico_price: cfg.plan_basico_price || "39",
-          plan_pro_price: cfg.plan_pro_price || "79",
-          plan_premium_price: cfg.plan_premium_price || "149",
+          plan_basico_price: cfg.plan_basico_price || "29",
+          plan_pro_price: cfg.plan_pro_price || "59",
+          plan_premium_price: cfg.plan_premium_price || "99",
           plan_basico_prof: cfg.plan_basico_prof || "2",
           plan_pro_prof: cfg.plan_pro_prof || "4",
           plan_premium_prof: cfg.plan_premium_prof || "9999",
