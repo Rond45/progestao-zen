@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { QrCode, CreditCard, Copy, Loader2, CheckCircle2, ArrowLeft } from "lucide-react";
 
 type PlanoId = "basico" | "pro" | "premium";
+const VALID_PLANS: PlanoId[] = ["basico", "pro", "premium"];
 const PLAN_PRICE: Record<PlanoId, string> = { basico: "29", pro: "59", premium: "99" };
 const PLAN_LABEL: Record<PlanoId, string> = { basico: "Básico", pro: "Pro", premium: "Premium" };
 
