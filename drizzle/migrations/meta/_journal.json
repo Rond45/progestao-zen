@@ -22,6 +22,13 @@
       "when": 1793368457480,
       "tag": "0002_central_autoreply_log",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793725635198,
+      "tag": "0003_trial_7_days_and_whatsapp_flag",
+      "breakpoints": true
     }
   ]
 }
