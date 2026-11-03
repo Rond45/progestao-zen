@@ -6,12 +6,16 @@ import { usePlan } from "@/hooks/usePlan";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, Link } from "react-router-dom";
 import PagamentoModal from "./PagamentoModal";
-import type { PlanName } from "@/lib/planAccess";
+import { usePlansConfig } from "@/hooks/usePlansConfig";
+import { PLAN_LABEL, type PlanName } from "@/lib/planAccess";
+
+const PAID_PLANS: PlanName[] = ["basico", "pro", "premium"];
 
 export default function VencimentoGate() {
   const { vencido, acessoValidoAte, currentPlanName, planName, isTrialing, loading } = usePlan();
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const plansConfig = usePlansConfig();
   const [paymentPlan, setPaymentPlan] = useState<PlanName | null>(null);
 
   const daysLeft = useMemo(() => {
@@ -20,9 +24,13 @@ export default function VencimentoGate() {
     return Math.ceil(ms / (1000 * 60 * 60 * 24));
   }, [acessoValidoAte]);
 
-  if (loading) return null;
+  // Só abre modal de pagamento com plano realmente pago. Trial/free ("free") vira null.
+  const planoValido = useMemo<PlanName | null>(() => {
+    const candidate = (currentPlanName ?? planName) as PlanName | null;
+    return candidate && PAID_PLANS.includes(candidate) ? candidate : null;
+  }, [currentPlanName, planName]);
 
-  const activePlan: PlanName = (currentPlanName ?? planName ?? "basico") as PlanName;
+  if (loading) return null;
 
   const handleLogout = async () => {
     await signOut();
@@ -34,6 +42,14 @@ export default function VencimentoGate() {
     !vencido && !isTrialing && acessoValidoAte && daysLeft !== null && daysLeft <= 3 && daysLeft >= 0;
 
   const showTrialBanner = isTrialing && daysLeft !== null && daysLeft >= 0;
+
+  const handleRenovate = () => {
+    if (planoValido) {
+      setPaymentPlan(planoValido);
+    } else {
+      navigate("/dashboard/planos");
+    }
+  };
 
   return (
     <>
@@ -67,7 +83,7 @@ export default function VencimentoGate() {
               Válido até {acessoValidoAte!.toLocaleDateString("pt-BR")}. Renove para continuar sem interrupções.
             </p>
           </div>
-          <Button size="sm" onClick={() => setPaymentPlan(activePlan)}>
+          <Button size="sm" onClick={handleRenovate}>
             Renovar
           </Button>
         </div>
@@ -83,19 +99,57 @@ export default function VencimentoGate() {
             <div className="mx-auto rounded-full bg-primary/15 p-3 mb-2">
               <AlertTriangle className="h-6 w-6 text-primary" />
             </div>
-            <DialogTitle className="text-center text-xl">Seu acesso expirou</DialogTitle>
-            <DialogDescription className="text-center">
-              Para continuar aproveitando o ProGestão+, renove sua assinatura. É rápido e você volta de onde parou.
-            </DialogDescription>
+            {planoValido ? (
+              <>
+                <DialogTitle className="text-center text-xl">Seu acesso expirou</DialogTitle>
+                <DialogDescription className="text-center">
+                  Para continuar aproveitando o ProGestão+, renove sua assinatura. É rápido e você volta de onde parou.
+                </DialogDescription>
+              </>
+            ) : (
+              <>
+                <DialogTitle className="text-center text-xl">Seu teste grátis terminou</DialogTitle>
+                <DialogDescription className="text-center">
+                  Escolha o plano que cabe no seu negócio para continuar de onde parou.
+                </DialogDescription>
+              </>
+            )}
           </DialogHeader>
-          <div className="flex flex-col gap-2 pt-2">
-            <Button size="lg" onClick={() => setPaymentPlan(activePlan)}>
-              Renovar agora
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" /> Sair
-            </Button>
-          </div>
+
+          {planoValido ? (
+            <div className="flex flex-col gap-2 pt-2">
+              <Button size="lg" onClick={() => setPaymentPlan(planoValido)}>
+                Renovar agora
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" /> Sair
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 pt-2">
+              {PAID_PLANS.map((p) => (
+                <Button
+                  key={p}
+                  size="lg"
+                  variant={p === "pro" ? "default" : "outline"}
+                  className="justify-between gap-3"
+                  onClick={() => setPaymentPlan(p)}
+                >
+                  <span>
+                    {PLAN_LABEL[p]} — R${plansConfig[p].price}/mês
+                  </span>
+                  {p === "pro" && (
+                    <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary-foreground">
+                      Mais popular
+                    </span>
+                  )}
+                </Button>
+              ))}
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" /> Sair
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
