@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Bot, FileText, Settings, Loader2, MessageCircle, ShieldCheck, Wifi, WifiOff } from "lucide-react";
+import { Bot, FileText, Settings, Loader2, MessageCircle, ShieldCheck, Wifi, WifiOff, Clock } from "lucide-react";
 import { useBusiness } from "@/hooks/useBusiness";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
