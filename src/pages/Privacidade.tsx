@@ -22,7 +22,7 @@ const Privacidade = () => {
         </p>
 
         <div className="mt-8 space-y-6 text-sm text-muted-foreground leading-relaxed">
-          <p>Esta Política de Privacidade descreve como o <strong>ProGestão+</strong>, operado por <strong>MR Solution</strong>, CNPJ <strong>58.254.166/0001-14</strong>, coleta, utiliza, armazena e protege dados pessoais, em conformidade com a Lei nº 13.709/2018 (Lei Geral de Proteção de Dados — LGPD).</p>
+          <p>Esta Política de Privacidade descreve como o <strong>ProGestão+</strong>, operado por <strong>MRSS Soluções Digitais</strong>, CNPJ <strong>58.254.166/0001-14</strong>, coleta, utiliza, armazena e protege dados pessoais, em conformidade com a Lei nº 13.709/2018 (Lei Geral de Proteção de Dados — LGPD).</p>
           <p>Contato do responsável pelo tratamento de dados: <strong>contato@mrss.com.br</strong></p>
 
           <section className="space-y-2">

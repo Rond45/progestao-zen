@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { PagamentoSucessoContent } from "./PagamentoSucessoDialog";
 import { QrCode, CreditCard, Copy, Loader2, CheckCircle2, ArrowLeft } from "lucide-react";
 
 type PlanoId = "basico" | "pro" | "premium";
@@ -12,7 +14,7 @@ const VALID_PLANS: PlanoId[] = ["basico", "pro", "premium"];
 const PLAN_PRICE: Record<PlanoId, string> = { basico: "29", pro: "59", premium: "99" };
 const PLAN_LABEL: Record<PlanoId, string> = { basico: "Básico", pro: "Pro", premium: "Premium" };
 
-type Step = "choose" | "pix" | "loading";
+type Step = "choose" | "pix" | "loading" | "success";
 
 interface Props {
   open: boolean;
@@ -24,6 +26,8 @@ interface Props {
 export default function PagamentoModal({ open, onOpenChange, plano, dismissible = true }: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [successAte, setSuccessAte] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("choose");
   const [loadingMethod, setLoadingMethod] = useState<"pix" | "cartao" | null>(null);
   const [pixData, setPixData] = useState<{ qr_code: string; qr_code_base64: string } | null>(null);
@@ -57,9 +61,9 @@ export default function PagamentoModal({ open, onOpenChange, plano, dismissible 
         : false;
       if (data.status === "active" && valid) {
         if (pollRef.current) { window.clearInterval(pollRef.current); pollRef.current = null; }
-        toast.success("Pagamento confirmado! Bem-vindo ao seu plano.");
-        onOpenChange(false);
-        navigate("/dashboard");
+        queryClient.invalidateQueries({ queryKey: ["subscription", user.id] });
+        setSuccessAte(data.acesso_valido_ate as string);
+        setStep("success");
       }
     }, 4000);
   };
@@ -86,6 +90,7 @@ export default function PagamentoModal({ open, onOpenChange, plano, dismissible 
       const { data, error } = await supabase.functions.invoke("criar-assinatura-cartao", { body: { plano } });
       if (error) throw error;
       if (!data?.init_point) throw new Error("Checkout não retornado");
+      try { sessionStorage.setItem("mp_card_return", plano); } catch { /* ignore */ }
       window.location.href = data.init_point;
     } catch (e: any) {
       toast.error("Erro ao iniciar cartão: " + (e?.message ?? "tente novamente"));
@@ -103,17 +108,27 @@ export default function PagamentoModal({ open, onOpenChange, plano, dismissible 
     }
   };
 
+  const isValidPlan = VALID_PLANS.includes(plano);
+
+  useEffect(() => {
+    if (open && !isValidPlan) toast.error("Escolha um plano para continuar");
+  }, [open, isValidPlan]);
+
+  const canDismiss = dismissible || step === "success";
+
   const handleOpenChange = (v: boolean) => {
-    if (!v && !dismissible) return;
+    if (!v && !canDismiss) return;
     onOpenChange(v);
   };
+
+  if (!isValidPlan) return null;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className="max-w-md border-primary/30 shadow-[0_20px_50px_-10px_rgba(184,143,60,0.35)]"
-        onInteractOutside={(e) => { if (!dismissible) e.preventDefault(); }}
-        onEscapeKeyDown={(e) => { if (!dismissible) e.preventDefault(); }}
+        onInteractOutside={(e) => { if (!canDismiss) e.preventDefault(); }}
+        onEscapeKeyDown={(e) => { if (!canDismiss) e.preventDefault(); }}
       >
         {step === "choose" && (
           <>
@@ -187,8 +202,15 @@ export default function PagamentoModal({ open, onOpenChange, plano, dismissible 
               <p className="text-xs text-muted-foreground text-center">
                 A confirmação é automática e pode levar alguns segundos após o pagamento.
               </p>
+              <p className="text-[11px] text-muted-foreground text-center leading-snug">
+                No comprovante do seu banco, o recebedor aparece como o titular cadastrado na Receita Federal (MRSS Soluções Digitais, CNPJ 58.254.166/0001-14). É normal e seguro.
+              </p>
             </div>
           </>
+        )}
+
+        {step === "success" && (
+          <PagamentoSucessoContent plano={plano} acessoValidoAte={successAte} onDone={() => onOpenChange(false)} />
         )}
       </DialogContent>
     </Dialog>

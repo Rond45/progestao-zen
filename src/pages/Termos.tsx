@@ -24,7 +24,7 @@ const Termos = () => {
         <div className="mt-8 space-y-6 text-sm text-muted-foreground leading-relaxed">
           <section className="space-y-2">
             <h2 className="text-lg font-semibold text-foreground">1. Quem somos</h2>
-            <p>O ProGestão+ é um software de gestão na modalidade SaaS (software como serviço) destinado a barbearias, salões de beleza e estabelecimentos similares. O serviço é operado por <strong>MR Solution</strong>, inscrita no CNPJ nº <strong>58.254.166/0001-14</strong>, doravante denominada "ProGestão+", "nós" ou "plataforma".</p>
+            <p>O ProGestão+ é um software de gestão na modalidade SaaS (software como serviço) destinado a barbearias, salões de beleza e estabelecimentos similares. O serviço é operado por <strong>MRSS Soluções Digitais</strong>, inscrita no CNPJ nº <strong>58.254.166/0001-14</strong>, doravante denominada "ProGestão+", "nós" ou "plataforma".</p>
             <p>Contato oficial: <strong>contato@mrss.com.br</strong></p>
             <p>Ao criar uma conta, contratar um plano ou utilizar qualquer funcionalidade do ProGestão+, você ("Usuário", "Contratante" ou "você") declara ter lido, compreendido e concordado integralmente com estes Termos de Uso e com a Política de Privacidade, que é parte integrante deste documento.</p>
           </section>
@@ -95,7 +95,7 @@ const Termos = () => {
 
           <section className="space-y-2">
             <h2 className="text-lg font-semibold text-foreground">10. Propriedade intelectual</h2>
-            <p>10.1. Todo o software, marca, design, código e conteúdo do ProGestão+ são de propriedade da MR Solution, sendo vedada reprodução, cópia, engenharia reversa ou uso não autorizado.</p>
+            <p>10.1. Todo o software, marca, design, código e conteúdo do ProGestão+ são de propriedade da MRSS Soluções Digitais, sendo vedada reprodução, cópia, engenharia reversa ou uso não autorizado.</p>
             <p>10.2. Os dados inseridos pelo Usuário permanecem de titularidade do Usuário.</p>
           </section>
 
