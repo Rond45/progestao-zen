@@ -13,6 +13,42 @@ const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [recoverySending, setRecoverySending] = useState(false);
+  const [recoveryMessage, setRecoveryMessage] = useState("");
+
+  const openRecovery = () => {
+    setRecoveryMode(true);
+    setRecoveryMessage("");
+    setError("");
+  };
+
+  const closeRecovery = () => {
+    setRecoveryMode(false);
+    setRecoveryMessage("");
+    setRecoveryEmail("");
+  };
+
+  const handleRecovery = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRecoverySending(true);
+    try {
+      localStorage.setItem("resetOrigem", "admin");
+    } catch {
+      // storage indisponível: segue o fluxo normalmente
+    }
+    try {
+      const normalizedEmail = recoveryEmail.trim().toLowerCase();
+      await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo: window.location.origin + "/redefinir-senha",
+      });
+    } catch {
+      // a resposta neutra é a mesma em qualquer caso
+    }
+    setRecoveryMessage("Se o e-mail estiver cadastrado, você receberá um link de recuperação.");
+    setRecoverySending(false);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +91,28 @@ const AdminLogin = () => {
           <h1 className="text-lg font-semibold text-zinc-100">Acesso Restrito</h1>
         </div>
 
+        {recoveryMode ? (
+          <form onSubmit={handleRecovery} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="admin-recovery-email" className="text-zinc-400 text-sm">E-mail</Label>
+              <Input
+                id="admin-recovery-email"
+                type="email"
+                value={recoveryEmail}
+                onChange={(e) => setRecoveryEmail(e.target.value)}
+                className="bg-zinc-900 border-zinc-800 text-zinc-100"
+                required
+              />
+            </div>
+            {recoveryMessage && <p className="text-zinc-400 text-sm">{recoveryMessage}</p>}
+            <Button type="submit" disabled={recoverySending} className="w-full bg-zinc-100 text-zinc-900 hover:bg-zinc-200">
+              {recoverySending ? "Enviando..." : "Enviar link"}
+            </Button>
+            <Button type="button" variant="ghost" onClick={closeRecovery} className="w-full text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100">
+              Cancelar
+            </Button>
+          </form>
+        ) : (
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="admin-email" className="text-zinc-400 text-sm">E-mail</Label>
@@ -88,11 +146,21 @@ const AdminLogin = () => {
               </button>
             </div>
           </div>
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={openRecovery}
+              className="text-xs text-zinc-500 hover:text-zinc-200 transition-colors"
+            >
+              Esqueci minha senha
+            </button>
+          </div>
           {error && <p className="text-red-400 text-sm">{error}</p>}
           <Button type="submit" disabled={loading} className="w-full bg-zinc-100 text-zinc-900 hover:bg-zinc-200">
             {loading ? "Validando..." : "Entrar"}
           </Button>
         </form>
+        )}
       </div>
     </div>
   );

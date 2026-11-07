@@ -61,6 +61,21 @@ const RedefinirSenha = () => {
       if (error) throw error;
       toast({ title: "Senha atualizada", description: "Sua nova senha foi definida com sucesso." });
       await supabase.auth.signOut();
+      let resetOrigem = "";
+      try {
+        resetOrigem = localStorage.getItem("resetOrigem") || "";
+      } catch {
+        resetOrigem = "";
+      }
+      if (resetOrigem === "admin") {
+        try {
+          localStorage.removeItem("resetOrigem");
+        } catch {
+          // storage indisponível: segue o fluxo normalmente
+        }
+        navigate("/admin", { replace: true });
+        return;
+      }
       navigate("/login", { replace: true });
     } catch (error: any) {
       const msg = error?.message || "";
