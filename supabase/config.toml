@@ -26,6 +26,3 @@ verify_jwt = true
 
 [functions.enviar-lembretes]
 verify_jwt = false
-
-[functions.wa-register-once]
-verify_jwt = false
