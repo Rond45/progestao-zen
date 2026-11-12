@@ -1055,6 +1055,13 @@ export type Database = {
         Returns: boolean
       }
       whatsapp_connect_enabled: { Args: never; Returns: boolean }
+      whatsapp_ia_status: {
+        Args: never
+        Returns: {
+          disponivel_em: string
+          habilitado: boolean
+        }[]
+      }
     }
     Enums: {
       app_role: "owner" | "professional" | "reception"

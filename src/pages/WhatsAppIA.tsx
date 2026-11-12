@@ -71,14 +71,20 @@ const WhatsAppIA = () => {
 
   const isConnected = connection?.status === "connected";
 
-  const { data: connectEnabled } = useQuery({
-    queryKey: ["whatsapp-connect-enabled"],
+  const { data: iaStatus } = useQuery({
+    queryKey: ["whatsapp-ia-status"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("whatsapp_connect_enabled");
-      if (error) return false;
-      return data === true;
+      const { data, error } = await supabase.rpc("whatsapp_ia_status");
+      if (error) return { habilitado: false, disponivel_em: null as string | null };
+      const row = Array.isArray(data) ? data[0] : data;
+      return { habilitado: row?.habilitado === true, disponivel_em: (row?.disponivel_em as string | null) ?? null };
     },
   });
+  const connectEnabled = iaStatus ? iaStatus.habilitado : undefined;
+  const bloqueado = iaStatus !== undefined && !iaStatus.habilitado;
+  const dataLiberacao = iaStatus?.disponivel_em
+    ? `${iaStatus.disponivel_em.slice(8, 10)}/${iaStatus.disponivel_em.slice(5, 7)}`
+    : null;
 
   // Captura waba_id / phone_number_id enviados pelo Embedded Signup via postMessage
   useEffect(() => {
@@ -174,7 +180,29 @@ const WhatsAppIA = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="relative">
+    {bloqueado && (
+      <div className="absolute inset-0 z-20 flex items-start justify-center p-4 pt-24 backdrop-blur-sm bg-background/40">
+        <div className="max-w-lg rounded-xl border-2 border-primary/40 bg-card p-6 shadow-lg">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Clock className="h-5 w-5 text-primary" />
+            </div>
+            <p className="text-base font-semibold text-foreground">WhatsApp</p>
+          </div>
+          <p className="text-sm text-foreground leading-relaxed">
+            Em conformidade com os meios legais do sistema, a função de WhatsApp estará disponível{" "}
+            {dataLiberacao ? `a partir do dia ${dataLiberacao}` : "em data a ser confirmada"}. Essa função atenderá a
+            necessidade de atendimento e envios de mensagens de fato de sua empresa e é de suma importância que esteja tudo
+            funcionando de acordo.
+          </p>
+        </div>
+      </div>
+    )}
+    <div
+      className={bloqueado ? "space-y-6 blur-sm pointer-events-none select-none" : "space-y-6"}
+      aria-hidden={bloqueado || undefined}
+    >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">WhatsApp IA</h1>
@@ -310,6 +338,7 @@ const WhatsAppIA = () => {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 };

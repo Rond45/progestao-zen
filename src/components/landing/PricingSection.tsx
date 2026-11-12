@@ -27,7 +27,7 @@ const plans = [
     features: [
       "Tudo do Básico",
       "Até 4 profissionais",
-      "WhatsApp IA (em breve)",
+      "Atendimento e agendamento automatizado pelo WhatsApp",
       "Lembretes automáticos por WhatsApp (até 300 por mês)",
       "Comissões automáticas",
     ],

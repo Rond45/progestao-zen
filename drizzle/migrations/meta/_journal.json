@@ -29,6 +29,13 @@
       "when": 1793725635198,
       "tag": "0003_trial_7_days_and_whatsapp_flag",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794492183668,
+      "tag": "0004_vencimento_2359_e_whatsapp_ia_status",
+      "breakpoints": true
     }
   ]
 }

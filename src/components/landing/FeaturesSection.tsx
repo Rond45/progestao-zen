@@ -17,7 +17,7 @@ const features = [
     icon: iconWhatsapp.url,
     title: "Lembretes por WhatsApp",
     description:
-      "Confirmações e lembretes automáticos do horário, direto no WhatsApp do seu cliente. Atendimento com IA em breve.",
+      "Confirmações e lembretes automáticos do horário, direto no WhatsApp do seu cliente.",
   },
   {
     icon: iconCrm.url,

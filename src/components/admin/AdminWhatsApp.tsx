@@ -26,6 +26,7 @@ const AdminWhatsApp = () => {
     default_ai_name: "",
     default_ai_tone: "",
     default_system_prompt: DEFAULT_PROMPT,
+    whatsapp_ia_disponivel_em: "",
   });
 
   useEffect(() => {
@@ -35,6 +36,7 @@ const AdminWhatsApp = () => {
         default_ai_name: cfg.default_ai_name || "Atendente",
         default_ai_tone: cfg.default_ai_tone || "Cordial, objetivo e profissional",
         default_system_prompt: cfg.default_system_prompt || DEFAULT_PROMPT,
+        whatsapp_ia_disponivel_em: cfg.whatsapp_ia_disponivel_em || "",
       });
     }
   }, [configData]);
@@ -98,6 +100,16 @@ const AdminWhatsApp = () => {
           <p className="text-[10px] text-zinc-500">
             Variáveis disponíveis: {"{ai_name}"}, {"{nome_estabelecimento}"}, {"{working_hours}"}, {"{services_info}"}
           </p>
+        </div>
+
+        <div className="space-y-1 max-w-xs">
+          <Label className="text-xs text-zinc-400">Data de liberação do WhatsApp</Label>
+          <Input
+            type="date"
+            value={globalForm.whatsapp_ia_disponivel_em}
+            onChange={(e) => setGlobalForm({ ...globalForm, whatsapp_ia_disponivel_em: e.target.value })}
+            className="bg-zinc-950 border-zinc-800 text-zinc-100"
+          />
         </div>
 
         <Button
