@@ -79,6 +79,22 @@ O usuário quer vídeos com narração. Padrão: voz neural gratuita do **Edge T
 - Escreva o roteiro da fala primeiro e derive a duração das cenas da duração real dos MP3 (`ffprobe`), não o contrário.
 - No cartão de reconhecimento, informe no campo "Formato assumido" a voz e se haverá música por baixo.
 
+## Vídeo a partir de um áudio do usuário
+
+Quando o usuário enviar uma narração gravada (ou um áudio qualquer) e pedir um vídeo que siga a fala, o áudio original vira a trilha e a animação é cronometrada pelas palavras.
+
+1. **Transcreva com tempo por palavra:**
+   ```bash
+   /opt/venvs/whisper/bin/python scripts/transcrever.py narracao.mp3   # gera .palavras.json, .srt, .vtt, .txt
+   ```
+   Fora da nuvem: `pip install faster-whisper "av<16"` (o PyAV 16+ quebra o faster-whisper 1.2.x). O modelo `small` (bom para português) baixa do Hugging Face na primeira vez; na nuvem os hosts já estão liberados no ambiente. Revise o `.txt` com o usuário se houver termos técnicos ou nomes próprios.
+2. **Roteiro de cenas a partir do texto:** uma cena por frase ou ideia; as quebras de frase do JSON são os cortes naturais.
+3. **Cronometre pela fala:** cada elemento (número, palavra-chave, gráfico) entra no início da palavra que o nomeia; nada aparece antes de ser dito. Busque as palavras no JSON por texto normalizado (sem acento/maiúscula), nunca escreva os tempos à mão. Modelo pronto: `scripts/exemplo_audio_para_video.py` (página `javascript-animation`, vídeo "ponto de equilíbrio").
+4. **Renderize sem áudio e junte o áudio original:** `ffmpeg -i mudo.mp4 -i narracao.mp3 -map 0:v -map 1:a -c:v copy -c:a aac -shortest final.mp4`. Música por baixo só se pedida, cerca de -18 dB abaixo da voz.
+5. **Verifique a sincronia** com quadros logo antes e logo depois de cada palavra-chave (o elemento ausente antes, presente depois) e entregue também as legendas `.srt`.
+
+Skill por tipo de conteúdo: números e gráficos → `javascript-animation`; fórmulas → `manim`; estilo artístico → `anidoodle` (provedor `files` + legendas próprias); Kurzgesagt/Vox/quadro branco → `huashu-art-motion` (fluxo de 口播, narração gravada); quadro branco simples → `handdraw-skill` (tempos do JSON nas animações).
+
 ## Limitações a avisar
 
 | Skill | Avisar quando relevante |
