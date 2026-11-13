@@ -21,7 +21,9 @@ export async function synthesizeEdgeNarration(clips: NarrationClip[], outputDire
   for (const [index, clip] of clips.entries()) {
     const path = join(outputDirectory, `narration-${String(index).padStart(3, "0")}.mp3`);
     try {
-      await run(process.env.HANDDRAW_PYTHON ?? "python3", ["-m", "edge_tts", "--voice", clip.voice ?? "zh-CN-XiaoxiaoNeural", "--rate", clip.rate ?? "+0%", "--text", clip.text, "--write-media", path]);
+      // edge-tts (aiohttp) ignores proxy env vars; pass it explicitly so sandboxed hosts behind an HTTPS proxy can reach the service.
+      const proxy = process.env.HTTPS_PROXY ?? process.env.https_proxy;
+      await run(process.env.HANDDRAW_PYTHON ?? "python3", ["-m", "edge_tts", ...(proxy ? ["--proxy", proxy] : []), "--voice", clip.voice ?? "zh-CN-XiaoxiaoNeural", "--rate", clip.rate ?? "+0%", "--text", clip.text, "--write-media", path]);
     } catch (error) {
       throw new Error(`Edge TTS synthesis failed. Install it with: python3 -m venv .venv && .venv/bin/pip install -r packages/audio/requirements.txt. ${error instanceof Error ? error.message : error}`);
     }

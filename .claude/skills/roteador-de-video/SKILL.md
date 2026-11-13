@@ -62,11 +62,28 @@ Posso seguir?
 
 `animation-principles` (ritmo e suavidade), `shot-composition` (enquadramento, margens, formatos), `color-motion` (paleta e cor), `motion-art-direction` (tom e consistência), `beat-sync-editing` (cortes na batida). Cite as que se aplicam no campo "Apoio".
 
+## Narração (voz em português)
+
+O usuário quer vídeos com narração. Padrão: voz neural gratuita do **Edge TTS**, sem chave.
+
+- Vozes pt-BR: `pt-BR-FranciscaNeural` (feminina, padrão), `pt-BR-AntonioNeural` (masculina), `pt-BR-ThalitaMultilingualNeural` (feminina). Pergunte a voz só se o usuário não indicou; senão use Francisca e diga.
+- Na nuvem, o host `speech.platform.bing.com` está liberado no ambiente `progestao-zen`, mas o `edge-tts` ignora as variáveis de proxy: passe `--proxy "$HTTPS_PROXY"` sempre que `HTTPS_PROXY` existir. O cliente fica em `.claude/skills/handdraw-skill/.venv/bin/python -m edge_tts` (ou instale com `pip install edge-tts`).
+  ```bash
+  python -m edge_tts --proxy "$HTTPS_PROXY" --voice pt-BR-FranciscaNeural --text "..." --write-media fala-01.mp3 --write-subtitles fala-01.vtt
+  ```
+- Como cada skill recebe a voz:
+  - `handdraw-skill`: nativo (`audio.narration` no projeto, campo `voice`); o proxy já é passado automaticamente.
+  - `anidoodle`: gere os MP3 e use o provedor `files` (gravações próprias) do `tools/narrate.mjs`; ele cuida do tempo e das legendas.
+  - `huashu-art-motion`: aceita gravação existente (已有录音) como trilha de voz; gere o MP3 e siga `references/13-口播与语音复刻.md`.
+  - `javascript-animation` + `soundtrack`, `manim`, `remotion-video`: gere os MP3 por cena, posicione nos tempos das cenas e misture com a trilha (ffmpeg `adelay` + `amix`, ou `self.add_sound` no Manim). Mantenha a música abaixo da voz (cerca de -18 dB) e rode a checagem de sincronia quando houver.
+- Escreva o roteiro da fala primeiro e derive a duração das cenas da duração real dos MP3 (`ffprobe`), não o contrário.
+- No cartão de reconhecimento, informe no campo "Formato assumido" a voz e se haverá música por baixo.
+
 ## Limitações a avisar
 
 | Skill | Avisar quando relevante |
 |---|---|
-| `handdraw-skill` | Narração usa Edge TTS (precisa acessar `speech.platform.bing.com`; bloqueado na nuvem, funciona na máquina local). No máximo 8 objetos por cena. |
+| `handdraw-skill` | No máximo 8 objetos por cena. Narração nativa (ver seção Narração). |
 | `claude-animation-base` | Sem GPU, quadros com aquarela levam cerca de 30 s; prefira pinceladas simples ou renderize na máquina local. Não usa texto na tela. |
 | `claude-drawing` | Só imagem estática (e GIF das etapas), não vídeo narrado. |
 | `motion-collage` | Custa créditos; confirmar o valor antes de cada geração; conector Kairogen pode estar instável. |
