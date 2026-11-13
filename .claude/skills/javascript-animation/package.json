@@ -1,0 +1,8 @@
+{
+  "name": "javascript-animation-skill",
+  "private": true,
+  "description": "Local deps for scripts/render.mjs (run `npm ci` in this folder once).",
+  "dependencies": {
+    "playwright-core": "1.63.0"
+  }
+}
